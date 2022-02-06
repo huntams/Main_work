@@ -6,17 +6,48 @@ import csv
 import matplotlib.pyplot as plt
 import os
 import openpyxl
+import peewee
 
 alldata = []
 emaxlist = []
 csvlist = []
 default_test_dir = r'F:\ДИПЛОМ\PDLS READER\Test PDLC\1%Al2O3_281014 _3 d=35mn'  # F:\ДИПЛОМ\Test PDLC\1%Al2O3_281014 _3 d=35mn'
 
+database = peewee.SqliteDatabase("pdlc.db")
+
+
+class BaseTable(peewee.Model):
+    # В подклассе Meta указываем подключение к той или иной базе данных
+    class Meta:
+        database = database
+
+
+# Чтобы создать таблицу в нашей БД, нам нужно создать класс
+class Composition(BaseTable):
+    name_composition = peewee.CharField()  # от типа столбца зависит тип данных, который мы сможем в него записать
+
+
+class Membrane(BaseTable):
+    composition = peewee.ForeignKeyField(Composition)
+    diametr = peewee.CharField()
+
+
+class data(BaseTable):
+    membrane = peewee.ForeignKeyField(Membrane)
+    dirname = peewee.CharField()
+    name = peewee.CharField()
+    Edata = peewee.CharField()
+    Udata = peewee.CharField()
+
 
 def treewalker(plenka_dir_name):
     """
         Просматривает дирректории и ищет файлы данных
     """
+    # Создание таблиц:
+    database.create_tables([Composition,
+                            Membrane,
+                            data])
     tree = os.walk(plenka_dir_name)  # r'C:\Users\andri\Desktop\ДИПЛОМ\Test PDLC\1%Al2O3_281014 _3 d=35mn')
     kluch = False  # нужен для отсечения первого элемента кортежа
     for i in tree:
@@ -88,11 +119,28 @@ def listslovarey(thickness=1.0):
         namedata["activ"] = True  # False
         namedata["dirname"] = izmerenie[0]
         namedata["name"] = izmerenie[0].split(os.path.sep)[-1]
-
         namedata["Edata"] = chtenieField(os.path.join(izmerenie[0], izmerenie[1][0]), thickness)
         namedata["Udata"] = chteniePhoto(os.path.join(izmerenie[0], izmerenie[1][1]), thickness)
         namedata["Emax"] = max(namedata["Edata"][1])
         namedata["Umax"] = max(namedata["Udata"][1])
+        print(namedata["Udata"][0])
+        new_composition = Composition(name_composition=izmerenie[0].split(os.path.sep)[-2])
+        new_composition.save()
+        new_membrane = Membrane(composition=new_composition,
+                                diametr=izmerenie[0].split(os.path.sep)[-2][
+                                        izmerenie[0].split(os.path.sep)[-2].find("=") + 1:-1])
+        new_membrane.save()
+        all_data = data(membrane=new_membrane.diametr, dirname=izmerenie[0],
+                       name=izmerenie[0].split(os.path.sep)[-1], Edata=namedata["Edata"][0],
+                        Udata=namedata["Udata"][0])
+        all_data.save()
+        #all_data = data(membrane=new_membrane.diametr, dirname=izmerenie[0], name=izmerenie[0].split(os.path.sep)[-1], Edata=namedata["Edata"][0], Udata=namedata["Udata"][0])
+        #        all_data=[]
+        #        for index in range(1, len(namedata["Edata"]) - 1):
+        #            all_data.append({"membrane":new_membrane.diametr, "dirname":izmerenie[0],
+        #                            "name":izmerenie[0].split(os.path.sep)[-1], "Edata":namedata["Edata"][index],
+        #                            "Udata":namedata["Udata"][index]})
+        #        data_insert = data.insert_many(all_data).execute()
         namedata["Timp_start"], namedata["Timp_stop"], namedata["dTimp"] = timpStartStop(namedata)  # [2]
         namedata["Uph_desc_step"] = descritizationSTEP(namedata["Udata"][1])
         if ((namedata["Umax"] - min(namedata["Udata"][1])) / namedata["Uph_desc_step"]) < 10:
@@ -264,7 +312,7 @@ def plot_transpare_proc(dataDict_list=alldata):
 
 def zapisyVtablici():
     """
-    
+
     """
     book = openpyxl.Workbook()
     sheet = book.active

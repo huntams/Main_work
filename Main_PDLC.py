@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, qApp, QApplicatio
 from PyQt5.QtGui import QIcon
 import myinterface
 import widTableData
-
+import db_worker
 import datetime
 
 now = datetime.datetime.now()
@@ -18,7 +18,6 @@ class Example(QMainWindow):
 
     def __init__(self):
         super().__init__()
-
         self.set_menu_tools_UI()
         self.central_wid_table()
 
@@ -36,7 +35,8 @@ class Example(QMainWindow):
 
     def set_menu_tools_UI(self):
 
-        RawReadAction = QAction(QIcon('icons/rawread.png'), '&Загрузка исходных данных', self)
+        RawReadAction = QAction(QIcon('icons/rawread.png'),
+                                '&Загрузка исходных данных', self)
         RawReadAction.setShortcut('Ctrl+R')
         RawReadAction.setStatusTip('Собрать исходники в БД')
         RawReadAction.triggered.connect(self.Manual_read_Widget)
