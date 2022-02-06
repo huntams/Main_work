@@ -83,7 +83,7 @@ import peewee
 import datetime
 
 # Создадим новую БД, для подключения будем использовать SQLite
-database = peewee.SqliteDatabase("pdlc.db")
+database = peewee.SqliteDatabase("pdlc2.db")
 
 
 class BaseTable(peewee.Model):
@@ -119,6 +119,9 @@ new_membrane = Membrane(composition=new_composition,
 all_data = data.create(membrane=new_membrane.diametr, dirname="izmerenie[0]",
                        name="izmerenie[0].split(os.path.sep)[-1]", Edata="namedata[][0]",
                        Udata="namedata[][0]")
+#dddd=data.select().where(data.name=="izmerenie[0].split(os.path.sep)[-1]")
+dddd=data.select().where(data.dirname=="izmerenie[0]").count()
+print(dddd)
 #all_data = data(membrane=new_membrane.diametr, dirname=izmerenie[0],
 #                name=izmerenie[0].split(os.path.sep)[-1], Edata=namedata["Edata"][index],
 #                Udata=namedata["Udata"][index])

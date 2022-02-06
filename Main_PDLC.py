@@ -7,7 +7,6 @@ from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, qApp, QApplicatio
 from PyQt5.QtGui import QIcon
 import myinterface
 import widTableData
-import db_worker
 import datetime
 
 now = datetime.datetime.now()

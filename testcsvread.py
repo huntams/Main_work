@@ -38,6 +38,10 @@ class data(BaseTable):
     name = peewee.CharField()
     Edata = peewee.CharField()
     Udata = peewee.CharField()
+    dTimp = peewee.CharField()
+    dTph_On = peewee.CharField()
+    dTph_Off = peewee.CharField()
+    dTph_max = peewee.CharField()
 
 
 def treewalker(plenka_dir_name):
@@ -123,18 +127,7 @@ def listslovarey(thickness=1.0):
         namedata["Udata"] = chteniePhoto(os.path.join(izmerenie[0], izmerenie[1][1]), thickness)
         namedata["Emax"] = max(namedata["Edata"][1])
         namedata["Umax"] = max(namedata["Udata"][1])
-        print(namedata["Udata"][0])
-        new_composition = Composition(name_composition=izmerenie[0].split(os.path.sep)[-2])
-        new_composition.save()
-        new_membrane = Membrane(composition=new_composition,
-                                diametr=izmerenie[0].split(os.path.sep)[-2][
-                                        izmerenie[0].split(os.path.sep)[-2].find("=") + 1:-1])
-        new_membrane.save()
-        all_data = data(membrane=new_membrane.diametr, dirname=izmerenie[0],
-                       name=izmerenie[0].split(os.path.sep)[-1], Edata=namedata["Edata"][0],
-                        Udata=namedata["Udata"][0])
-        all_data.save()
-        #all_data = data(membrane=new_membrane.diametr, dirname=izmerenie[0], name=izmerenie[0].split(os.path.sep)[-1], Edata=namedata["Edata"][0], Udata=namedata["Udata"][0])
+        # all_data = data(membrane=new_membrane.diametr, dirname=izmerenie[0], name=izmerenie[0].split(os.path.sep)[-1], Edata=namedata["Edata"][0], Udata=namedata["Udata"][0])
         #        all_data=[]
         #        for index in range(1, len(namedata["Edata"]) - 1):
         #            all_data.append({"membrane":new_membrane.diametr, "dirname":izmerenie[0],
@@ -155,6 +148,23 @@ def listslovarey(thickness=1.0):
             namedata["dTph_On"] = namedata["Tph_On"] - namedata["Timp_start"]
             namedata["dTph_Off"] = namedata["Tph_Off"] - namedata["Timp_stop"]
             namedata["dTph_max"] = namedata["Timp_stop"] - namedata["Tph_On"]
+
+#        if Composition.select().where(Composition.name_composition == izmerenie[0].split(os.path.sep)[-2]).count() == 0:
+        if data.select().where(data.name == izmerenie[0].split(os.path.sep)[-1]).count() == 0:
+            print("work")
+            new_composition = Composition(name_composition=izmerenie[0].split(os.path.sep)[-2])
+            new_composition.save()
+            new_membrane = Membrane(composition=new_composition,
+                                    diametr=izmerenie[0].split(os.path.sep)[-2][
+                                            izmerenie[0].split(os.path.sep)[-2].find("=") + 1:])
+            new_membrane.save()
+            all_data = data(membrane=new_membrane.diametr, dirname=izmerenie[0],
+                            name=izmerenie[0].split(os.path.sep)[-1], Edata=namedata["Edata"][0],
+                            Udata=namedata["Udata"][0], dTimp=namedata["dTimp"], dTph_On=namedata["dTimp"],
+                            dTph_Off=namedata["dTph_Off"],
+                            dTph_max=namedata["dTph_max"]
+                            )
+            all_data.save()
 
         alldata.append(namedata)
 
