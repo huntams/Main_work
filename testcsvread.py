@@ -1,7 +1,7 @@
 """
 @authors: Maksim & Konstantin
 """
-
+from db_worker import database, Composition, Membrane, Data, DataGraph
 import csv
 import matplotlib.pyplot as plt
 import os
@@ -12,60 +12,6 @@ alldata = []
 emaxlist = []
 csvlist = []
 default_test_dir = r'D:\диплом\Test PDLC\1_Al2O3_281014 _3 d=35mn'  # D:\диплом\Test PDLC\1_Al2O3_281014 _3 d=35mn
-
-database = peewee.SqliteDatabase("pdlc.db")
-
-
-class BaseTable(peewee.Model):
-    """
-    Базовый класс для создания бд через ORM библиотеку
-    """
-
-    # В подклассе Meta указываем подключение к той или иной базе данных
-    class Meta:
-        database = database
-
-
-# Чтобы создать таблицу в нашей БД, нам нужно создать класс
-class Composition(BaseTable):
-    """
-    класс для созания таблицы состава плёнки
-    """
-    name_composition = peewee.CharField()  # от типа столбца зависит тип данных, который мы сможем в него записать
-
-
-class Membrane(BaseTable):
-    """
-    класс для созания таблицы диаметра плёнки
-    """
-    composition = peewee.ForeignKeyField(Composition)
-    diametr = peewee.CharField()
-
-
-class Data(BaseTable):
-    """
-    класс для созания таблицы информации о плёнки
-    """
-    membrane = peewee.ForeignKeyField(Membrane)
-    dirname = peewee.CharField()
-    name = peewee.CharField()
-    active = peewee.BooleanField()
-    Emax = peewee.FloatField()
-    Umax = peewee.FloatField()
-    Uph_desc_step = peewee.FloatField()
-    dTph_On = peewee.FloatField()
-    dTph_Off = peewee.FloatField()
-    dTph_max = peewee.FloatField()
-    Uph_active = peewee.BooleanField()
-    Uph_On = peewee.FloatField()
-    Uph_Off = peewee.FloatField()
-
-class DataGraph(BaseTable):
-    data_index = peewee.ForeignKeyField(Data)
-    Edata1 = peewee.FloatField()
-    Edata2 = peewee.FloatField()
-    Udata1 = peewee.FloatField()
-    Udata2 = peewee.FloatField()
 
 
 def treewalker(plenka_dir_name):
@@ -168,7 +114,7 @@ def listslovarey(thickness=1.0):
                 all_data = Data.create(membrane=new_membrane.diametr, dirname=izmerenie[0],
                                        name=izmerenie[0].split(os.path.sep)[-1],
                                        active=False,
-                                       Emax =max(namedata["Edata"][1]),
+                                       Emax=max(namedata["Edata"][1]),
                                        Umax=max(namedata["Udata"][1]),
                                        Uph_desc_step=descritizationSTEP(namedata["Udata"][1]),
                                        dTph_On=namedata["dTimp"],
@@ -276,7 +222,7 @@ def descritizationSTEP(datalist):
     return min_step
 
 
-def otrisovkagraf_mod(DataClass=Data,Data_graph=DataGraph):
+def otrisovkagraf_mod(DataClass=Data, Data_graph=DataGraph):
     """
     Отрисовка графиков через использование данных
     загруженных в лист словарей
@@ -366,25 +312,6 @@ def plot_transpare_proc(DataClass=Data):
     plt.xlabel("Управляющее поле, В/мкм")
     plt.ylabel("Прозпачность, В")
     plt.legend()
-
-
-def zapisyVtablici():
-    """
-
-    """
-    book = openpyxl.Workbook()
-    sheet = book.active
-
-    """
-    запись максимального значения напряжения в xl файл (название дирректории, два значения)
-    """
-    for i, val in enumerate(emaxlist):
-        sheet.cell(row=(i + 1), column=1).value = val[0]
-        sheet.cell(row=(i + 1), column=2).value = val[1]
-        sheet.cell(row=(i + 1), column=3).value = val[2]
-
-    book.save("UmaxLIST.xlsx")
-    book.close()
 
 
 def fulldirload(aim_dir=default_test_dir, load_type=1, thickness=10.0):
