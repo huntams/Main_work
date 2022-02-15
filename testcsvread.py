@@ -293,6 +293,7 @@ def otrisovkagraf_mod(DataClass=Data,Data_graph=DataGraph):
     загруженных в лист словарей
 
     """
+
     fig_all = plt.figure(1, tight_layout=True)
     ax_f = fig_all.subplots()
     ax_c = ax_f.twinx()
