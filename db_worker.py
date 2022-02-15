@@ -51,8 +51,11 @@ if __name__ == "__main__":
             "Udata": item + 1
         })
         # all = data_graph.create(datada=all_data, Edata=item, Udata=item + 1)
-        print(item)
+        #print(item)
     data_graph.insert_many(test).execute()
+    masss = []
+    for data_h in data_graph.select().where(data_graph.Edata <= 159):
+        print(data_h.Edata)
     # dddd=data.select().where(data.name=="izmerenie[0].split(os.path.sep)[-1]")
-    dddd = Data.select().where(Data.dirname == "izmerenie[0]").count()
-    print(dddd)
+    #dddd = Data.select().where(Data.dirname == "izmerenie[0]").count()
+    #print(dddd)

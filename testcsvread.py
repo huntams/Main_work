@@ -42,21 +42,25 @@ class Membrane(BaseTable):
     diametr = peewee.CharField()
 
 
-class data(BaseTable):
+class Data(BaseTable):
     """
     класс для созания таблицы информации о плёнки
     """
     membrane = peewee.ForeignKeyField(Membrane)
     dirname = peewee.CharField()
     name = peewee.CharField()
-    dTimp = peewee.CharField()
-    dTph_On = peewee.CharField()
-    dTph_Off = peewee.CharField()
-    dTph_max = peewee.CharField()
+    active = peewee.BooleanField()
+    Emax = peewee.FloatField()
+    Umax = peewee.FloatField()
+    Uph_desc_step = peewee.FloatField()
+    dTph_On = peewee.FloatField()
+    dTph_Off = peewee.FloatField()
+    dTph_max = peewee.FloatField()
+    Uph_active = peewee.BooleanField()
 
 
-class data_graph(BaseTable):
-    data_index = peewee.ForeignKeyField(data)
+class DataGraph(BaseTable):
+    data_index = peewee.ForeignKeyField(Data)
     Edata1 = peewee.FloatField()
     Edata2 = peewee.FloatField()
     Udata1 = peewee.FloatField()
@@ -70,8 +74,8 @@ def treewalker(plenka_dir_name):
     # Создание таблиц:
     database.create_tables([Composition,
                             Membrane,
-                            data,
-                            data_graph])
+                            Data,
+                            DataGraph])
     tree = os.walk(plenka_dir_name)  # r'C:\Users\andri\Desktop\ДИПЛОМ\Test PDLC\1%Al2O3_281014 _3 d=35mn')
     kluch = False  # нужен для отсечения первого элемента кортежа
     for i in tree:
@@ -139,45 +143,65 @@ def listslovarey(thickness=1.0):
     Словари.
     """
     for izmerenie in csvlist:
-        namedata = {}
-        namedata["activ"] = True  # False
-        namedata["dirname"] = izmerenie[0]
-        namedata["name"] = izmerenie[0].split(os.path.sep)[-1]
-        namedata["Edata"] = chtenieField(os.path.join(izmerenie[0], izmerenie[1][0]), thickness)
-        namedata["Udata"] = chteniePhoto(os.path.join(izmerenie[0], izmerenie[1][1]), thickness)
-        namedata["Emax"] = max(namedata["Edata"][1])
-        namedata["Umax"] = max(namedata["Udata"][1])
-        namedata["Timp_start"], namedata["Timp_stop"], namedata["dTimp"] = timpStartStop(namedata)  # [2]
-        namedata["Uph_desc_step"] = descritizationSTEP(namedata["Udata"][1])
+        if Data.select().where(Data.name == izmerenie[0].split(os.path.sep)[-1]).count() == 0:
+            namedata = {}
+            namedata["activ"] = True  # False
+            namedata["dirname"] = izmerenie[0]
+            namedata["name"] = izmerenie[0].split(os.path.sep)[-1]
+            namedata["Edata"] = chtenieField(os.path.join(izmerenie[0], izmerenie[1][0]), thickness)
+            namedata["Udata"] = chteniePhoto(os.path.join(izmerenie[0], izmerenie[1][1]), thickness)
+            namedata["Emax"] = max(namedata["Edata"][1])
+            namedata["Umax"] = max(namedata["Udata"][1])
+            namedata["Timp_start"], namedata["Timp_stop"], namedata["dTimp"] = timpStartStop(namedata)  # [2]
+            namedata["Uph_desc_step"] = descritizationSTEP(namedata["Udata"][1])
 
-        if ((namedata["Umax"] - min(namedata["Udata"][1])) / namedata["Uph_desc_step"]) < 10:
-            namedata["Uph_activ"] = False
-            namedata["activ"] = False
-            namedata["dTph_On"] = namedata["dTimp"]
-            namedata["dTph_Off"] = 0.0
-            namedata["dTph_max"] = 0.0
-        else:
-            namedata["Uph_activ"] = True
-            namedata["Tph_On"], namedata["Tph_Off"], namedata["Uph_On"], namedata["Uph_Off"] = tphOnOff(namedata)
-            namedata["dTph_On"] = namedata["Tph_On"] - namedata["Timp_start"]
-            namedata["dTph_Off"] = namedata["Tph_Off"] - namedata["Timp_stop"]
-            namedata["dTph_max"] = namedata["Timp_stop"] - namedata["Tph_On"]
-        alldata.append(namedata)
-        # if Composition.select().where(Composition.name_composition == izmerenie[0].split(os.path.sep)[-2]).count() == 0:
-        if data.select().where(data.name == izmerenie[0].split(os.path.sep)[-1]).count() == 0:
             print("work")
+            # Запись информации в таблицу состава
             new_composition = Composition(name_composition=izmerenie[0].split(os.path.sep)[-2])
             new_composition.save()
+            # Запись информации в таблицу плёнки
             new_membrane = Membrane(composition=new_composition,
                                     diametr=izmerenie[0].split(os.path.sep)[-2][
                                             izmerenie[0].split(os.path.sep)[-2].find("=") + 1:])
             new_membrane.save()
-            all_data = data.create(membrane=new_membrane.diametr, dirname=izmerenie[0],
-                                   name=izmerenie[0].split(os.path.sep)[-1], dTimp=namedata["dTimp"],
-                                   dTph_On=namedata["dTimp"],
-                                   dTph_Off=namedata["dTph_Off"],
-                                   dTph_max=namedata["dTph_max"]
-                                   )
+
+            if ((namedata["Umax"] - min(namedata["Udata"][1])) / namedata["Uph_desc_step"]) < 10:
+                namedata["Uph_activ"] = False
+                namedata["activ"] = False
+                namedata["dTph_On"] = namedata["dTimp"]
+                namedata["dTph_Off"] = 0.0
+                namedata["dTph_max"] = 0.0
+                # Запись общей информации плёнки
+                all_data = Data.create(membrane=new_membrane.diametr, dirname=izmerenie[0],
+                                       name=izmerenie[0].split(os.path.sep)[-1],
+                                       active=False,
+                                       Emax =max(namedata["Edata"][1]),
+                                       Umax=max(namedata["Udata"][1]),
+                                       Uph_desc_step=descritizationSTEP(namedata["Udata"][1]),
+                                       dTph_On=namedata["dTimp"],
+                                       dTph_Off=namedata["dTph_Off"],
+                                       dTph_max=namedata["dTph_max"],
+                                       Uph_active=False
+                                       )
+            else:
+                namedata["Uph_activ"] = True
+                namedata["Tph_On"], namedata["Tph_Off"], namedata["Uph_On"], namedata["Uph_Off"] = tphOnOff(namedata)
+                namedata["dTph_On"] = namedata["Tph_On"] - namedata["Timp_start"]
+                namedata["dTph_Off"] = namedata["Tph_Off"] - namedata["Timp_stop"]
+                namedata["dTph_max"] = namedata["Timp_stop"] - namedata["Tph_On"]
+                # Запись общей информации плёнки
+                all_data = Data.create(membrane=new_membrane.diametr, dirname=izmerenie[0],
+                                       name=izmerenie[0].split(os.path.sep)[-1],
+                                       active=True,
+                                       Emax=max(namedata["Edata"][1]),
+                                       Umax=max(namedata["Udata"][1]),
+                                       Uph_desc_step=descritizationSTEP(namedata["Udata"][1]),
+                                       dTph_On=namedata["Tph_On"] - namedata["Timp_start"],
+                                       dTph_Off=namedata["Tph_Off"] - namedata["Timp_stop"],
+                                       dTph_max=namedata["Timp_stop"] - namedata["Tph_On"],
+                                       Uph_active=True
+                                       )
+            # Запись Edata и Udata в таблицу
             items_data = []
             for index in range(0, len(namedata["Edata"][0])):
                 items_data.append({
@@ -187,9 +211,12 @@ def listslovarey(thickness=1.0):
                     "Udata1": namedata["Udata"][0][index],
                     "Udata2": namedata["Udata"][1][index]
                 })
-            data_graph.insert_many(items_data).execute()
-            # for item in range(len(namedata["Udata"])):
-            # Data_graphix= data_graph(data_index=data,Udata=,Edata=)
+            DataGraph.insert_many(items_data).execute()
+            alldata.append(namedata)
+        # if Composition.select().where(Composition.name_composition == izmerenie[0].split(os.path.sep)[-2]).count() == 0:
+
+        # for item in range(len(namedata["Udata"])):
+        # Data_graphix= data_graph(data_index=data,Udata=,Edata=)
 
 
 def timpStartStop(dataDict):
@@ -324,17 +351,18 @@ def plot_time_proc(dataDict_list=alldata):
     plt.legend()
 
 
-def plot_transpare_proc(dataDict_list=alldata):
+def plot_transpare_proc(Data_class=Data):
     """
     График прозрачности от поля
 
     """
     Emax_list = []
     Uph_ampl_list = []
-    for izmer_dict in dataDict_list:
-        if izmer_dict["activ"]:
-            Emax_list.append(izmer_dict["Emax"])
-            Uph_ampl_list.append(izmer_dict["Umax"])
+    for izmer_dict in Data_class.select():
+        if izmer_dict.active:
+            print(izmer_dict.Emax)
+            Emax_list.append(izmer_dict.Emax)
+            Uph_ampl_list.append(izmer_dict.Umax)
     fig_time = plt.figure(3, tight_layout=True)
     plt.subplot(2, 1, 2)
     plt.plot(Emax_list, Uph_ampl_list, 'k.-', label='UphMAX')
@@ -373,7 +401,7 @@ def fulldirload(aim_dir=default_test_dir, load_type=1, thickness=10.0):
     if load_type == 1:
         print("one layer load ___")
         print(aim_dir)
-        treewalker(aim_dir)  # r'G:\Download\STUDY\ДИПЛОМ\Test PDLC\1%Al2O3_281014 _3 d=35mn')
+        treewalker(aim_dir)  # r'D:\диплом\Test PDLC\1_Al2O3_281014 _3 d=35mn')
     if load_type == 0:
         print("alone mesure load ___")
         print(aim_dir)
