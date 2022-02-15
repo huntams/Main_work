@@ -57,7 +57,8 @@ class Data(BaseTable):
     dTph_Off = peewee.FloatField()
     dTph_max = peewee.FloatField()
     Uph_active = peewee.BooleanField()
-
+    Uph_On = peewee.FloatField()
+    Uph_Off = peewee.FloatField()
 
 class DataGraph(BaseTable):
     data_index = peewee.ForeignKeyField(Data)
@@ -167,7 +168,6 @@ def listslovarey(thickness=1.0):
 
             if ((namedata["Umax"] - min(namedata["Udata"][1])) / namedata["Uph_desc_step"]) < 10:
                 namedata["Uph_activ"] = False
-                namedata["activ"] = False
                 namedata["dTph_On"] = namedata["dTimp"]
                 namedata["dTph_Off"] = 0.0
                 namedata["dTph_max"] = 0.0
@@ -181,7 +181,9 @@ def listslovarey(thickness=1.0):
                                        dTph_On=namedata["dTimp"],
                                        dTph_Off=namedata["dTph_Off"],
                                        dTph_max=namedata["dTph_max"],
-                                       Uph_active=False
+                                       Uph_active=False,
+                                       Uph_On=0,
+                                       Uph_Off=0
                                        )
             else:
                 namedata["Uph_activ"] = True
@@ -199,7 +201,9 @@ def listslovarey(thickness=1.0):
                                        dTph_On=namedata["Tph_On"] - namedata["Timp_start"],
                                        dTph_Off=namedata["Tph_Off"] - namedata["Timp_stop"],
                                        dTph_max=namedata["Timp_stop"] - namedata["Tph_On"],
-                                       Uph_active=True
+                                       Uph_active=True,
+                                       Uph_On=namedata["Uph_On"],
+                                       Uph_Off=namedata["Uph_Off"]
                                        )
             # Запись Edata и Udata в таблицу
             items_data = []
@@ -283,7 +287,7 @@ def descritizationSTEP(datalist):
     return min_step
 
 
-def otrisovkagraf_mod(dataDict_list=alldata):
+def otrisovkagraf_mod(DataClass=Data,Data_graph=DataGraph):
     """
     Отрисовка графиков через использование данных
     загруженных в лист словарей
@@ -293,14 +297,19 @@ def otrisovkagraf_mod(dataDict_list=alldata):
     ax_f = fig_all.subplots()
     ax_c = ax_f.twinx()
     # print(dataDict_list)
-    for izmer_dict in dataDict_list:
-        if izmer_dict["activ"]:
+    for BD_data in DataClass.select():
+        if BD_data.active:
             fig_one = plt.figure(2, tight_layout=True)
             fig_one.clf()
             ax_f1 = fig_one.subplots()
             ax_c1 = ax_f1.twinx()
-            tlist1, vlist1 = izmer_dict["Edata"]
-            tlist2, vlist2 = izmer_dict["Udata"]
+            print("time1")
+            for BD_item in Data_graph.select():
+                tlist1 = BD_item.Edata1
+                vlist1 = BD_item.Edata2
+                tlist2 = BD_item.Udata1
+                vlist2 = BD_item.Udata2
+            print("time2")
             ax_f.plot(tlist1, vlist1, 'r')
             ax_f.set_xlabel("Время, мс")
             ax_f.set_ylabel("Поле, В/мкм")
@@ -311,22 +320,22 @@ def otrisovkagraf_mod(dataDict_list=alldata):
             ax_f1.set_ylabel("Поле, В/мкм")
             ax_c1.plot(tlist2, vlist2, 'g')
             ax_c1.set_ylabel("Фотоотклик, В")
-            ### Отрисовка там где возможно точки включения и выключения
-            if izmer_dict["Uph_activ"]:
-                ax_c1.plot(izmer_dict["Tph_On"], izmer_dict["Uph_On"], 'ob')
-                ax_c1.plot(izmer_dict["Tph_Off"], izmer_dict["Uph_Off"], 'ob')
-                ax_c.plot(izmer_dict["Tph_On"], izmer_dict["Uph_On"], 'ob')
-                ax_c.plot(izmer_dict["Tph_Off"], izmer_dict["Uph_Off"], 'ob')
+            # Отрисовка там где возможно точки включения и выключения
+            if BD_data.Uph_active:
+                ax_c1.plot(BD_data.dTph_On, BD_data.Uph_On, 'ob')
+                ax_c1.plot(BD_data.dTph_Off, BD_data.Uph_Off, 'ob')
+                ax_c.plot(BD_data.dTph_On, BD_data.Uph_On, 'ob')
+                ax_c.plot(BD_data.dTph_Off, BD_data.Uph_Off, 'ob')
 
-            print(izmer_dict["name"])
+            print(BD_data.name)
             print(' -- ploted')
 
         else:
-            print(izmer_dict["name"])
+            print(BD_data.name)
             print(' -- NOT ploted')
 
 
-def plot_time_proc(dataDict_list=alldata):
+def plot_time_proc(DataClass=Data):
     """
     График времен срабатывания от поля
 
@@ -335,12 +344,12 @@ def plot_time_proc(dataDict_list=alldata):
     dt_on_list = []
     dt_off_list = []
     dt_max_list = []
-    for izmer_dict in dataDict_list:
-        if izmer_dict["activ"]:
-            Emax_list.append(izmer_dict["Emax"])
-            dt_on_list.append(izmer_dict["dTph_On"])
-            dt_off_list.append(izmer_dict["dTph_Off"])
-            dt_max_list.append(izmer_dict["dTph_max"])
+    for BD_data in DataClass.select():
+        if BD_data.active:
+            Emax_list.append(BD_data.Emax)
+            dt_on_list.append(BD_data.dTph_On)
+            dt_off_list.append(BD_data.dTph_Off)
+            dt_max_list.append(BD_data.dTph_max)
     fig_time = plt.figure(3, tight_layout=True)
     plt.subplot(2, 1, 1)
     plt.plot(Emax_list, dt_on_list, 'r.-', label='t_on')
@@ -351,18 +360,17 @@ def plot_time_proc(dataDict_list=alldata):
     plt.legend()
 
 
-def plot_transpare_proc(Data_class=Data):
+def plot_transpare_proc(DataClass=Data):
     """
     График прозрачности от поля
 
     """
     Emax_list = []
     Uph_ampl_list = []
-    for izmer_dict in Data_class.select():
-        if izmer_dict.active:
-            print(izmer_dict.Emax)
-            Emax_list.append(izmer_dict.Emax)
-            Uph_ampl_list.append(izmer_dict.Umax)
+    for BD_data in DataClass.select():
+        if BD_data.active:
+            Emax_list.append(BD_data.Emax)
+            Uph_ampl_list.append(BD_data.Umax)
     fig_time = plt.figure(3, tight_layout=True)
     plt.subplot(2, 1, 2)
     plt.plot(Emax_list, Uph_ampl_list, 'k.-', label='UphMAX')
