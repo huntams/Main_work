@@ -11,12 +11,16 @@ import peewee
 alldata = []
 emaxlist = []
 csvlist = []
-default_test_dir = r'F:\ДИПЛОМ\PDLS READER\Test PDLC\1%Al2O3_281014 _3 d=35mn'  # F:\ДИПЛОМ\Test PDLC\1%Al2O3_281014 _3 d=35mn'
+default_test_dir = r'D:\диплом\Test PDLC\1_Al2O3_281014 _3 d=35mn'  # D:\диплом\Test PDLC\1_Al2O3_281014 _3 d=35mn
 
 database = peewee.SqliteDatabase("pdlc.db")
 
 
 class BaseTable(peewee.Model):
+    """
+    Базовый класс для создания бд через ORM библиотеку
+    """
+
     # В подклассе Meta указываем подключение к той или иной базе данных
     class Meta:
         database = database
@@ -24,24 +28,39 @@ class BaseTable(peewee.Model):
 
 # Чтобы создать таблицу в нашей БД, нам нужно создать класс
 class Composition(BaseTable):
+    """
+    класс для созания таблицы состава плёнки
+    """
     name_composition = peewee.CharField()  # от типа столбца зависит тип данных, который мы сможем в него записать
 
 
 class Membrane(BaseTable):
+    """
+    класс для созания таблицы диаметра плёнки
+    """
     composition = peewee.ForeignKeyField(Composition)
     diametr = peewee.CharField()
 
 
 class data(BaseTable):
+    """
+    класс для созания таблицы информации о плёнки
+    """
     membrane = peewee.ForeignKeyField(Membrane)
     dirname = peewee.CharField()
     name = peewee.CharField()
-    Edata = peewee.CharField()
-    Udata = peewee.CharField()
     dTimp = peewee.CharField()
     dTph_On = peewee.CharField()
     dTph_Off = peewee.CharField()
     dTph_max = peewee.CharField()
+
+
+class data_graph(BaseTable):
+    data_index = peewee.ForeignKeyField(data)
+    Edata1 = peewee.FloatField()
+    Edata2 = peewee.FloatField()
+    Udata1 = peewee.FloatField()
+    Udata2 = peewee.FloatField()
 
 
 def treewalker(plenka_dir_name):
@@ -51,7 +70,8 @@ def treewalker(plenka_dir_name):
     # Создание таблиц:
     database.create_tables([Composition,
                             Membrane,
-                            data])
+                            data,
+                            data_graph])
     tree = os.walk(plenka_dir_name)  # r'C:\Users\andri\Desktop\ДИПЛОМ\Test PDLC\1%Al2O3_281014 _3 d=35mn')
     kluch = False  # нужен для отсечения первого элемента кортежа
     for i in tree:
@@ -127,15 +147,9 @@ def listslovarey(thickness=1.0):
         namedata["Udata"] = chteniePhoto(os.path.join(izmerenie[0], izmerenie[1][1]), thickness)
         namedata["Emax"] = max(namedata["Edata"][1])
         namedata["Umax"] = max(namedata["Udata"][1])
-        # all_data = data(membrane=new_membrane.diametr, dirname=izmerenie[0], name=izmerenie[0].split(os.path.sep)[-1], Edata=namedata["Edata"][0], Udata=namedata["Udata"][0])
-        #        all_data=[]
-        #        for index in range(1, len(namedata["Edata"]) - 1):
-        #            all_data.append({"membrane":new_membrane.diametr, "dirname":izmerenie[0],
-        #                            "name":izmerenie[0].split(os.path.sep)[-1], "Edata":namedata["Edata"][index],
-        #                            "Udata":namedata["Udata"][index]})
-        #        data_insert = data.insert_many(all_data).execute()
         namedata["Timp_start"], namedata["Timp_stop"], namedata["dTimp"] = timpStartStop(namedata)  # [2]
         namedata["Uph_desc_step"] = descritizationSTEP(namedata["Udata"][1])
+
         if ((namedata["Umax"] - min(namedata["Udata"][1])) / namedata["Uph_desc_step"]) < 10:
             namedata["Uph_activ"] = False
             namedata["activ"] = False
@@ -148,8 +162,8 @@ def listslovarey(thickness=1.0):
             namedata["dTph_On"] = namedata["Tph_On"] - namedata["Timp_start"]
             namedata["dTph_Off"] = namedata["Tph_Off"] - namedata["Timp_stop"]
             namedata["dTph_max"] = namedata["Timp_stop"] - namedata["Tph_On"]
-
-#        if Composition.select().where(Composition.name_composition == izmerenie[0].split(os.path.sep)[-2]).count() == 0:
+        alldata.append(namedata)
+        # if Composition.select().where(Composition.name_composition == izmerenie[0].split(os.path.sep)[-2]).count() == 0:
         if data.select().where(data.name == izmerenie[0].split(os.path.sep)[-1]).count() == 0:
             print("work")
             new_composition = Composition(name_composition=izmerenie[0].split(os.path.sep)[-2])
@@ -158,15 +172,24 @@ def listslovarey(thickness=1.0):
                                     diametr=izmerenie[0].split(os.path.sep)[-2][
                                             izmerenie[0].split(os.path.sep)[-2].find("=") + 1:])
             new_membrane.save()
-            all_data = data(membrane=new_membrane.diametr, dirname=izmerenie[0],
-                            name=izmerenie[0].split(os.path.sep)[-1], Edata=namedata["Edata"][0],
-                            Udata=namedata["Udata"][0], dTimp=namedata["dTimp"], dTph_On=namedata["dTimp"],
-                            dTph_Off=namedata["dTph_Off"],
-                            dTph_max=namedata["dTph_max"]
-                            )
-            all_data.save()
-
-        alldata.append(namedata)
+            all_data = data.create(membrane=new_membrane.diametr, dirname=izmerenie[0],
+                                   name=izmerenie[0].split(os.path.sep)[-1], dTimp=namedata["dTimp"],
+                                   dTph_On=namedata["dTimp"],
+                                   dTph_Off=namedata["dTph_Off"],
+                                   dTph_max=namedata["dTph_max"]
+                                   )
+            items_data = []
+            for index in range(0, len(namedata["Edata"][0])):
+                items_data.append({
+                    "data_index": all_data,
+                    "Edata1": namedata["Edata"][0][index],
+                    "Edata2": namedata["Edata"][1][index],
+                    "Udata1": namedata["Udata"][0][index],
+                    "Udata2": namedata["Udata"][1][index]
+                })
+            data_graph.insert_many(items_data).execute()
+            # for item in range(len(namedata["Udata"])):
+            # Data_graphix= data_graph(data_index=data,Udata=,Edata=)
 
 
 def timpStartStop(dataDict):
@@ -242,7 +265,7 @@ def otrisovkagraf_mod(dataDict_list=alldata):
     fig_all = plt.figure(1, tight_layout=True)
     ax_f = fig_all.subplots()
     ax_c = ax_f.twinx()
-    print(dataDict_list)
+    # print(dataDict_list)
     for izmer_dict in dataDict_list:
         if izmer_dict["activ"]:
             fig_one = plt.figure(2, tight_layout=True)

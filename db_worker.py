@@ -1,89 +1,6 @@
-# -*- coding: utf-8 -*-
-
-#
-# 16.04 Базы данных
-#
-
-# В самом общем смысле база данных (БД) - это набор какой-либо информации.
-# Под такое определение может подойти даже текстовый файл - который по сути является простенькой базой данных.
-
-# Но зачастую, говоря о базе данных, имеют ввиду БД, расположенную на сервере (на сервере может быть несколько БД),
-# состояющую из множества таблиц, которые в свою очередь хранят записи.
-
-# Такая структура напоминает таблицы Excel:
-# множество таблиц, состоящих из полей (колонок с заголовками) имеющих строгий тип и строк с данными.
-
-# К базовым типам данных относят:
-# -- строки (специальные символы, буквы, цифры, которые в совокупности будут обрабатываться как строки.
-#            используются разные типы, зависящие от размера строки и способа выделения памяти для их хранения)
-# -- числа (целочисленные: разные типы, в зависимости от охватываемомго диапазона, например от -128 до 127 и тд.
-#           дробные: разные типы в зависимости от необходимой точности, например тип хранящий числа
-#           с двоичной точностью)
-# -- даты (в зависимости от типа даты, используются разные типы её хранения.
-#          один тип может хранить только время, другой дату, третий и дату и время или только год)
-
-# Кроме базовых типов, существуют и другие.
-# Ими могут быть логические данные, или например графика/звук/видео,
-# а некоторые БД позволяют и вовсе создать свой пользовательский тип данных.
-
-# СУБД - система управления базами данных.
-# Нередко говоря о БД, люди подразумевают СУБД - набор программного обеспечения,
-# которое отвечает за создание и работу с БД.
-# Главная функция СУБД - управление данными.
-# Она также должна поддерживать языки БД и отвечает за копирование/восстановление данных после сбоев.
-
-# Популярные СУБД:
-
-# SQLite
-# - локальная - все части на одной машине
-# - open-source
-
-# MySQL
-# - серверная - части могут быть расположены на разных машинах
-# - open-source
-
-# PostgreSQL
-# - серверная
-# - open-source
-
-# Oracle
-# - серверная
-# - закрытые исходники
-
-
-# Обратите внимание, что мы заполнили только 3 поля, остальные автоматически заполнились значениями None.
-
-
-# ORM
-
-# Другой подход - ORM (Object Relational Mapping) или Объектно-реляционное отображение
-# ORM фреймворк представляет собой промежуточный слой между реляционной СУБД и нашим кодом.
-# В итоге запросы к этому слою преобразуются в SQL запросы к БД.
-# Кроме того, манипуляции с данными происходят на уровне объектов.
-# Классы таких объектов соответствуют таблицам БД,
-# а экземпляры этих классов - конкретным записям (строкам) таблиц.
-
-# Преимущества ORM:
-# -- Независимость от вида базы данных (код легко изменить под другой вид базы данных)
-# -- Развитый интерфейс освобождает от сложной семантики SQL (но не исключает её, при необходимости)
-# Недостатки ORM:
-# -- Потеря производительности:
-#    ORM ускоряет процесс разработки и снижает сложность создания конечного продукта
-#    но это приводит к тому, что приложение начинает потреблять больше ресурсов
-# -- Частичная потеря специфичной функциональности СУБД
-
-# Наиболее распространенные ORM:
-# -- SQLAlchemy - Одна из самых популярных ORM
-# -- Django ORM - часть фреймворка Django
-# -- Peewee/Pony ORM - небольшие ORM
-
-# Рассмотрим работу с БД на примере Peewee ORM
-# подробная документация - http://docs.peewee-orm.com/en/latest/index.html
 import peewee
-import datetime
 
-# Создадим новую БД, для подключения будем использовать SQLite
-database = peewee.SqliteDatabase("pdlc2.db")
+database = peewee.SqliteDatabase("pdlc3.db")
 
 
 class BaseTable(peewee.Model):
@@ -101,7 +18,7 @@ class Membrane(BaseTable):
     diametr = peewee.CharField()
 
 
-class data(BaseTable):
+class Data(BaseTable):
     membrane = peewee.ForeignKeyField(Membrane)
     dirname = peewee.CharField()
     name = peewee.CharField()
@@ -109,19 +26,33 @@ class data(BaseTable):
     Udata = peewee.CharField()
 
 
-# Создание таблиц:
-database.create_tables([Composition, Membrane, data])
+class data_graph(BaseTable):
+    datada = peewee.ForeignKeyField(Data)
+    Edata = peewee.FloatField()
+    Udata = peewee.FloatField()
 
-new_composition = Composition(name_composition="slovo")
-new_composition.save()
-new_membrane = Membrane(composition=new_composition,
-                        diametr="233")
-all_data = data.create(membrane=new_membrane.diametr, dirname="izmerenie[0]",
-                       name="izmerenie[0].split(os.path.sep)[-1]", Edata="namedata[][0]",
-                       Udata="namedata[][0]")
-#dddd=data.select().where(data.name=="izmerenie[0].split(os.path.sep)[-1]")
-dddd=data.select().where(data.dirname=="izmerenie[0]").count()
-print(dddd)
-#all_data = data(membrane=new_membrane.diametr, dirname=izmerenie[0],
-#                name=izmerenie[0].split(os.path.sep)[-1], Edata=namedata["Edata"][index],
-#                Udata=namedata["Udata"][index])
+
+# Создание таблиц:
+if __name__ == "__main__":
+    database.create_tables([Composition, Membrane, Data, data_graph])
+
+    new_composition = Composition(name_composition="slovo")
+    new_composition.save()
+    new_membrane = Membrane(composition=new_composition,
+                            diametr="233")
+    all_data = Data.create(membrane=new_membrane.diametr, dirname="izmerenie[0]",
+                           name="izmerenie[0].split(os.path.sep)[-1]", Edata=1,
+                           Udata=1 + 1)
+    test = []
+    for item in range(100, 200):
+        test.append({
+            "datada": all_data,
+            "Edata": item,
+            "Udata": item + 1
+        })
+        # all = data_graph.create(datada=all_data, Edata=item, Udata=item + 1)
+        print(item)
+    data_graph.insert_many(test).execute()
+    # dddd=data.select().where(data.name=="izmerenie[0].split(os.path.sep)[-1]")
+    dddd = Data.select().where(Data.dirname == "izmerenie[0]").count()
+    print(dddd)
