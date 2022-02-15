@@ -146,9 +146,6 @@ def listslovarey(thickness=1.0):
     for izmerenie in csvlist:
         if Data.select().where(Data.name == izmerenie[0].split(os.path.sep)[-1]).count() == 0:
             namedata = {}
-            namedata["activ"] = True  # False
-            namedata["dirname"] = izmerenie[0]
-            namedata["name"] = izmerenie[0].split(os.path.sep)[-1]
             namedata["Edata"] = chtenieField(os.path.join(izmerenie[0], izmerenie[1][0]), thickness)
             namedata["Udata"] = chteniePhoto(os.path.join(izmerenie[0], izmerenie[1][1]), thickness)
             namedata["Emax"] = max(namedata["Edata"][1])
@@ -163,14 +160,10 @@ def listslovarey(thickness=1.0):
             # Запись информации в таблицу плёнки
             new_membrane = Membrane(composition=new_composition,
                                     diametr=izmerenie[0].split(os.path.sep)[-2][
-                                            izmerenie[0].split(os.path.sep)[-2].find("=") + 1:])
+                                            izmerenie[0].split(os.path.sep)[-2].find("="):])
             new_membrane.save()
 
             if ((namedata["Umax"] - min(namedata["Udata"][1])) / namedata["Uph_desc_step"]) < 10:
-                namedata["Uph_activ"] = False
-                namedata["dTph_On"] = namedata["dTimp"]
-                namedata["dTph_Off"] = 0.0
-                namedata["dTph_max"] = 0.0
                 # Запись общей информации плёнки
                 all_data = Data.create(membrane=new_membrane.diametr, dirname=izmerenie[0],
                                        name=izmerenie[0].split(os.path.sep)[-1],
@@ -179,18 +172,14 @@ def listslovarey(thickness=1.0):
                                        Umax=max(namedata["Udata"][1]),
                                        Uph_desc_step=descritizationSTEP(namedata["Udata"][1]),
                                        dTph_On=namedata["dTimp"],
-                                       dTph_Off=namedata["dTph_Off"],
-                                       dTph_max=namedata["dTph_max"],
+                                       dTph_Off=0,
+                                       dTph_max=0,
                                        Uph_active=False,
                                        Uph_On=0,
                                        Uph_Off=0
                                        )
             else:
-                namedata["Uph_activ"] = True
                 namedata["Tph_On"], namedata["Tph_Off"], namedata["Uph_On"], namedata["Uph_Off"] = tphOnOff(namedata)
-                namedata["dTph_On"] = namedata["Tph_On"] - namedata["Timp_start"]
-                namedata["dTph_Off"] = namedata["Tph_Off"] - namedata["Timp_stop"]
-                namedata["dTph_max"] = namedata["Timp_stop"] - namedata["Tph_On"]
                 # Запись общей информации плёнки
                 all_data = Data.create(membrane=new_membrane.diametr, dirname=izmerenie[0],
                                        name=izmerenie[0].split(os.path.sep)[-1],
