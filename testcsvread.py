@@ -89,8 +89,17 @@ def listslovarey(thickness=1.0):
     """
     Словари.
     """
+    # Запись информации в таблицу состава
+    new_composition = Composition(name_composition=csvlist[0][0].split(os.path.sep)[-2])
+    new_composition.save()
+    # Запись информации в таблицу плёнки
+    new_membrane = Membrane(composition=new_composition,
+                            diametr=csvlist[0][0].split(os.path.sep)[-2][
+                                    csvlist[0][0].split(os.path.sep)[-2].find("=")+1:])
+    new_membrane.save()
     for izmerenie in csvlist:
         if Data.select().where(Data.name == izmerenie[0].split(os.path.sep)[-1]).count() == 0:
+
             namedata = {}
             namedata["Edata"] = chtenieField(os.path.join(izmerenie[0], izmerenie[1][0]), thickness)
             namedata["Udata"] = chteniePhoto(os.path.join(izmerenie[0], izmerenie[1][1]), thickness)
@@ -98,17 +107,7 @@ def listslovarey(thickness=1.0):
             namedata["Umax"] = max(namedata["Udata"][1])
             namedata["Timp_start"], namedata["Timp_stop"], namedata["dTimp"] = timpStartStop(namedata)  # [2]
             namedata["Uph_desc_step"] = descritizationSTEP(namedata["Udata"][1])
-
             print("work")
-            # Запись информации в таблицу состава
-            new_composition = Composition(name_composition=izmerenie[0].split(os.path.sep)[-2])
-            new_composition.save()
-            # Запись информации в таблицу плёнки
-            new_membrane = Membrane(composition=new_composition,
-                                    diametr=izmerenie[0].split(os.path.sep)[-2][
-                                            izmerenie[0].split(os.path.sep)[-2].find("="):])
-            new_membrane.save()
-
             if ((namedata["Umax"] - min(namedata["Udata"][1])) / namedata["Uph_desc_step"]) < 10:
                 # Запись общей информации плёнки
                 all_data = Data.create(membrane=new_membrane.diametr, dirname=izmerenie[0],
@@ -118,6 +117,7 @@ def listslovarey(thickness=1.0):
                                        Umax=max(namedata["Udata"][1]),
                                        Uph_desc_step=descritizationSTEP(namedata["Udata"][1]),
                                        dTph_On=namedata["dTimp"],
+                                       dTimp=namedata["dTimp"],
                                        dTph_Off=0,
                                        dTph_max=0,
                                        Uph_active=False,
@@ -134,6 +134,7 @@ def listslovarey(thickness=1.0):
                                        Umax=max(namedata["Udata"][1]),
                                        Uph_desc_step=descritizationSTEP(namedata["Udata"][1]),
                                        dTph_On=namedata["Tph_On"] - namedata["Timp_start"],
+                                       dTimp=namedata["dTimp"],
                                        dTph_Off=namedata["Tph_Off"] - namedata["Timp_stop"],
                                        dTph_max=namedata["Timp_stop"] - namedata["Tph_On"],
                                        Uph_active=True,
@@ -152,10 +153,6 @@ def listslovarey(thickness=1.0):
                 })
             DataGraph.insert_many(items_data).execute()
             alldata.append(namedata)
-        # if Composition.select().where(Composition.name_composition == izmerenie[0].split(os.path.sep)[-2]).count() == 0:
-
-        # for item in range(len(namedata["Udata"])):
-        # Data_graphix= data_graph(data_index=data,Udata=,Edata=)
 
 
 def timpStartStop(dataDict):

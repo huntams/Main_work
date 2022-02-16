@@ -40,6 +40,7 @@ class Data(BaseTable):
     Emax = peewee.FloatField()
     Umax = peewee.FloatField()
     Uph_desc_step = peewee.FloatField()
+    dTimp = peewee.FloatField()
     dTph_On = peewee.FloatField()
     dTph_Off = peewee.FloatField()
     dTph_max = peewee.FloatField()
@@ -58,6 +59,7 @@ class DataGraph(BaseTable):
 
 # Создание таблиц:
 if __name__ == "__main__":
+    database = peewee.SqliteDatabase("pdlc2.db")
     database.create_tables([Composition, Membrane, Data, DataGraph])
 
     new_composition = Composition(name_composition="slovo")
@@ -65,21 +67,28 @@ if __name__ == "__main__":
     new_membrane = Membrane(composition=new_composition,
                             diametr="233")
     all_data = Data.create(membrane=new_membrane.diametr, dirname="izmerenie[0]",
-                           name="izmerenie[0].split(os.path.sep)[-1]", Edata=1,
-                           Udata=1 + 1)
+                           name="izmerenie[0].split(os.path.sep)[-1]", active=True, Emax=1,
+                           Umax=1 + 1, Uph_desc_step=0,
+                           Uph_active=True, dTph_On=0, dTph_Off=0, dTph_max=0, Uph_On=0,
+                           Uph_Off=0)
     test = []
     for item in range(100, 200):
         test.append({
-            "datada": all_data,
-            "Edata": item,
-            "Udata": item + 1
+            "data_index": all_data,
+            "Edata1": item,
+            "Udata1": item + 1,
+            "Edata2": item,
+            "Udata2": item + 1
         })
         # all = data_graph.create(datada=all_data, Edata=item, Udata=item + 1)
         # print(item)
+
     DataGraph.insert_many(test).execute()
     masss = []
-    for data_h in DataGraph.select().where(DataGraph.Edata <= 159):
-        print(data_h.Edata)
+    print(len(Data.select()))
+    for i, izm in enumerate(Data.select()):
+        print(i, izm.active)
+
     # dddd=data.select().where(data.name=="izmerenie[0].split(os.path.sep)[-1]")
     # dddd = Data.select().where(Data.dirname == "izmerenie[0]").count()
     # print(dddd)
