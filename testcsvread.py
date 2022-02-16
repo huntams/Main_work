@@ -1,6 +1,8 @@
 """
 @authors: Maksim & Konstantin
 """
+from threading import Thread
+
 from db_worker import database, Composition, Membrane, Data, DataGraph
 import csv
 import matplotlib.pyplot as plt
@@ -12,6 +14,24 @@ alldata = []
 emaxlist = []
 csvlist = []
 default_test_dir = r'D:\диплом\Test PDLC\1_Al2O3_281014 _3 d=35mn'  # D:\диплом\Test PDLC\1_Al2O3_281014 _3 d=35mn
+
+
+class ThrThr(Thread):
+    def __init__(self, name,thickness):
+        super(ThrThr, self).__init__()
+        self.name = name
+        self.thickness = thickness
+
+
+    def split(self, list):
+        return list[::2], list[1::2]
+
+    def run(self):
+        mas = self.split(csvlist)
+        if self.name == 'first':
+            listslovarey(csvlist=mas[0])
+        else:
+            listslovarey(csvlist=mas[1])
 
 
 def treewalker(plenka_dir_name):
@@ -85,7 +105,7 @@ def chteniePhoto(namefile, thickness=30.0):
     return tlist, vlist
 
 
-def listslovarey(thickness=1.0):
+def listslovarey(csvlist=csvlist,thickness=1.0):
     """
     Словари.
     """
@@ -95,7 +115,7 @@ def listslovarey(thickness=1.0):
     # Запись информации в таблицу плёнки
     new_membrane = Membrane(composition=new_composition,
                             diametr=csvlist[0][0].split(os.path.sep)[-2][
-                                    csvlist[0][0].split(os.path.sep)[-2].find("=")+1:])
+                                    csvlist[0][0].split(os.path.sep)[-2].find("=") + 1:])
     new_membrane.save()
     for izmerenie in csvlist:
         if Data.select().where(Data.name == izmerenie[0].split(os.path.sep)[-1]).count() == 0:
@@ -327,15 +347,23 @@ def fulldirload(aim_dir=default_test_dir, load_type=1, thickness=10.0):
         print("alone mesure load ___")
         print(aim_dir)
         alone_mesure(aim_dir)
-
-    listslovarey(thickness)
+    threads = [ThrThr(name='first',thickness=thickness), ThrThr(name='second',thickness=thickness)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
     csvlist.clear()
 
 
 if __name__ == "__main__":
     treewalker(
         default_test_dir)  # просмотр указанной директории с заполнением списка файлив и директорий единичных измерений
-    listslovarey()  # загрузка на основе списка единичных измерений в форме словарей включая определение времён
-    otrisovkagraf_mod()  # отрисовка списка словарей единичных измерений
+    threads = [ThrThr(name='first'), ThrThr(name='second')]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    # listslovarey()  # загрузка на основе списка единичных измерений в форме словарей включая определение времён
+    #otrisovkagraf_mod()  # отрисовка списка словарей единичных измерений
     plot_time_proc()
     plot_transpare_proc()
