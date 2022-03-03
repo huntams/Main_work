@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QApplication, QGridLay
 from PyQt5.QtCore import QSize
 
 # DefaultDataList = [[True, "all 001", 2.1, 10, 0.01, 1, 8, 3, ""], [False, "all 002", 4.1, 10, 0.03, 1, 8, 3, ""]]
-from db_worker import Data
+from db_worker import Data, Composition
 
 
 class Tablica(QWidget):
@@ -25,7 +25,6 @@ class Tablica(QWidget):
         self.table = QTableWidget(1, 10)  # Создаём таблицу self
         # table.setColumnCount(3)     # Устанавливаем три колонки
         # table.setRowCount(1)        # и одну строку в таблице
-
         # Устанавливаем заголовки таблицы
         self.table.setHorizontalHeaderLabels(
             ["", "Адрес", "E(упр.)", "dt imp", "Ph. U(max)", "t on", "t off", "t max", "Аппроксимация", "Особенности"])
@@ -58,16 +57,19 @@ class Tablica(QWidget):
 
     def zapolnenietablici(self):
         try:
+
             self.table.setRowCount(len(Data.select()))
+            #self.table.setItem()
             for i, izm in enumerate(Data.select()):
+                self.table.setItem(i, 0, QTableWidgetItem(izm.membrane.composition.name_composition))
+                self.table.setColumnWidth(0, 70)
                 self.table.setCellWidget(i, 0, QCheckBox())
                 self.table.cellWidget(i, 0).setChecked(izm.active)
-                self.table.setColumnWidth(0, 15)
+                self.table.setColumnWidth(0, 180)
                 self.table.setItem(i, 1, QTableWidgetItem(izm.name))
                 self.table.setColumnWidth(1, 70)
                 self.table.setItem(i, 2, QTableWidgetItem("{:.1f}".format(izm.Emax)))
                 self.table.setColumnWidth(2, 50)
-
                 self.table.setItem(i, 4, QTableWidgetItem("{:.3f}".format(izm.Umax)))
                 self.table.setColumnWidth(4, 70)
                 self.table.setItem(i, 3, QTableWidgetItem("{:.1f}".format(izm.dTimp)))

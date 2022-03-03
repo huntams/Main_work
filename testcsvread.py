@@ -130,7 +130,7 @@ def listslovarey(csvlist=csvlist,thickness=1.0):
             print("work")
             if ((namedata["Umax"] - min(namedata["Udata"][1])) / namedata["Uph_desc_step"]) < 10:
                 # Запись общей информации плёнки
-                all_data = Data.create(membrane=new_membrane.diametr, dirname=izmerenie[0],
+                all_data = Data.create(membrane=new_membrane, dirname=izmerenie[0],
                                        name=izmerenie[0].split(os.path.sep)[-1],
                                        active=False,
                                        Emax=max(namedata["Edata"][1]),
@@ -147,7 +147,7 @@ def listslovarey(csvlist=csvlist,thickness=1.0):
             else:
                 namedata["Tph_On"], namedata["Tph_Off"], namedata["Uph_On"], namedata["Uph_Off"] = tphOnOff(namedata)
                 # Запись общей информации плёнки
-                all_data = Data.create(membrane=new_membrane.diametr, dirname=izmerenie[0],
+                all_data = Data.create(membrane=new_membrane, dirname=izmerenie[0],
                                        name=izmerenie[0].split(os.path.sep)[-1],
                                        active=True,
                                        Emax=max(namedata["Edata"][1]),
@@ -239,7 +239,7 @@ def descritizationSTEP(datalist):
     return min_step
 
 
-def otrisovkagraf_mod(DataClass=Data, Data_graph=DataGraph):
+def otrisovkagraf_mod():
     """
     Отрисовка графиков через использование данных
     загруженных в лист словарей
@@ -249,14 +249,14 @@ def otrisovkagraf_mod(DataClass=Data, Data_graph=DataGraph):
     ax_f = fig_all.subplots()
     ax_c = ax_f.twinx()
     # print(dataDict_list)
-    for BD_data in DataClass.select():
+    for BD_data in Data.select():
         if BD_data.active:
             fig_one = plt.figure(2, tight_layout=True)
             fig_one.clf()
             ax_f1 = fig_one.subplots()
             ax_c1 = ax_f1.twinx()
             print("time1")
-            for BD_item in Data_graph.select():
+            for BD_item in DataGraph.select():
                 tlist1 = BD_item.Edata1
                 vlist1 = BD_item.Edata2
                 tlist2 = BD_item.Udata1
@@ -278,6 +278,7 @@ def otrisovkagraf_mod(DataClass=Data, Data_graph=DataGraph):
                 ax_c1.plot(BD_data.dTph_Off, BD_data.Uph_Off, 'ob')
                 ax_c.plot(BD_data.dTph_On, BD_data.Uph_On, 'ob')
                 ax_c.plot(BD_data.dTph_Off, BD_data.Uph_Off, 'ob')
+                plt.show()
 
             print(BD_data.name)
             print(' -- ploted')
@@ -310,6 +311,7 @@ def plot_time_proc(DataClass=Data):
     plt.xlabel("Управляющее поле, В/мкм")
     plt.ylabel("Время, мс")
     plt.legend()
+    plt.show()
 
 
 def plot_transpare_proc(DataClass=Data):
@@ -329,6 +331,7 @@ def plot_transpare_proc(DataClass=Data):
     plt.xlabel("Управляющее поле, В/мкм")
     plt.ylabel("Прозпачность, В")
     plt.legend()
+    plt.show()
 
 
 def fulldirload(aim_dir=default_test_dir, load_type=1, thickness=10.0):
