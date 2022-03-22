@@ -50,7 +50,7 @@ class Data(BaseTable):
 
 
 class DataGraph(BaseTable):
-    data_index = peewee.ForeignKeyField(Data)
+    index = peewee.ForeignKeyField(Data)
     Edata1 = peewee.FloatField()
     Edata2 = peewee.FloatField()
     Udata1 = peewee.FloatField()
@@ -66,15 +66,15 @@ if __name__ == "__main__":
     new_composition.save()
     new_membrane = Membrane(composition=new_composition,
                             diametr="233")
-    all_data = Data.create(membrane=new_membrane.diametr, dirname="izmerenie[0]",
+    all_data = Data.create(membrane=new_membrane.diametr, dirname="izmerenie[1]",
                            name="izmerenie[0].split(os.path.sep)[-1]", active=True, Emax=1,
-                           Umax=1 + 1, Uph_desc_step=0,
+                           Umax=1 + 1, Uph_desc_step=0,dTimp=0,
                            Uph_active=True, dTph_On=0, dTph_Off=0, dTph_max=0, Uph_On=0,
                            Uph_Off=0)
     test = []
     for item in range(100, 200):
         test.append({
-            "data_index": all_data,
+            "index": all_data.dirname,
             "Edata1": item,
             "Udata1": item + 1,
             "Edata2": item,
@@ -85,9 +85,10 @@ if __name__ == "__main__":
 
     DataGraph.insert_many(test).execute()
     masss = []
-    print(len(Data.select()))
-    for i, izm in enumerate(Data.select()):
-        print(i, izm.active)
+    #print(len(Data.select()))
+    for bd_d in Data.select():
+        for i, izm in enumerate(DataGraph.select().where(bd_d.dirname==DataGraph.index)):
+            print(i, izm.Edata1)
 
     # dddd=data.select().where(data.name=="izmerenie[0].split(os.path.sep)[-1]")
     # dddd = Data.select().where(Data.dirname == "izmerenie[0]").count()

@@ -3,15 +3,13 @@
 """
 
 import sys
-from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, qApp, QApplication, QDockWidget
-from PyQt5.QtGui import QIcon
+from PyQt6.QtWidgets import QMainWindow, QMessageBox, QApplication, QDockWidget
+from PyQt6.QtGui import QIcon, QAction
 import myinterface
 import widTableData
 import datetime
-
 now = datetime.datetime.now()
 cur_date = now.strftime("%d-%m-%Y")
-
 
 class Example(QMainWindow):
 
@@ -42,7 +40,7 @@ class Example(QMainWindow):
         exitAction = QAction(QIcon('icons/exit.png'), '&Выход', self)
         exitAction.setShortcut('Ctrl+Q')
         exitAction.setStatusTip('Закрыть приложение')
-        exitAction.triggered.connect(qApp.quit)
+        exitAction.triggered.connect(QApplication.quit)
 
         self.statusBar()
 
@@ -58,9 +56,9 @@ class Example(QMainWindow):
 
     def closeEvent(self, event):
         reply = QMessageBox.question(self, 'Предупреждение',
-                                     "Вы действительно хотите выйти?", QMessageBox.Yes |
-                                     QMessageBox.No, QMessageBox.No)
-        if reply == QMessageBox.Yes:
+                                     "Вы действительно хотите выйти?", QMessageBox.StandardButton.Yes |
+                                     QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
+        if reply == QMessageBox.StandardButton.Yes:
             event.accept()
         else:
             event.ignore()
@@ -71,4 +69,4 @@ if __name__ == '__main__':
     app.setWindowIcon(QIcon('LOGO-PDLC.png'))
     ex = Example()
     ex.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

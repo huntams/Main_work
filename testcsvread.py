@@ -8,7 +8,6 @@ import csv
 import matplotlib.pyplot as plt
 import os
 import openpyxl
-import peewee
 
 alldata = []
 emaxlist = []
@@ -17,11 +16,10 @@ default_test_dir = r'D:\диплом\Test PDLC\1_Al2O3_281014 _3 d=35mn'  # D:\�
 
 
 class ThrThr(Thread):
-    def __init__(self, name,thickness):
+    def __init__(self, name, thickness):
         super(ThrThr, self).__init__()
         self.name = name
         self.thickness = thickness
-
 
     def split(self, list):
         return list[::2], list[1::2]
@@ -105,7 +103,7 @@ def chteniePhoto(namefile, thickness=30.0):
     return tlist, vlist
 
 
-def listslovarey(csvlist=csvlist,thickness=1.0):
+def listslovarey(csvlist=csvlist, thickness=1.0):
     """
     Словари.
     """
@@ -165,7 +163,7 @@ def listslovarey(csvlist=csvlist,thickness=1.0):
             items_data = []
             for index in range(0, len(namedata["Edata"][0])):
                 items_data.append({
-                    "data_index": all_data,
+                    "index": all_data.dirname,
                     "Edata1": namedata["Edata"][0][index],
                     "Edata2": namedata["Edata"][1][index],
                     "Udata1": namedata["Udata"][0][index],
@@ -185,6 +183,8 @@ def timpStartStop(dataDict):
     vlist = dataDict["Edata"][1]
     Espec = 0.5 * dataDict["Emax"]
     trigger = 0
+    Tstart = 0
+    Tstop = 0
     for i, v in enumerate(vlist):
         if v > Espec and trigger == 0:
             Tstart = i
@@ -192,7 +192,6 @@ def timpStartStop(dataDict):
         if v < Espec and trigger == 1:
             Tstop = i
             trigger = 2
-
     return tlist[Tstart], tlist[Tstop], (tlist[Tstop] - tlist[Tstart])
 
 
@@ -220,10 +219,18 @@ def tphOnOff(dataDict):
         if vlist[i] > UspecHigh[0] and vlist[i] < UspecHigh[1] and tlist[i] < dataDict["Timp_stop"]:
             UlistHigh.append(vlist[i])
             TlistHigh.append(tlist[i])
-    t_On = sum(TlistHigh) / len(TlistHigh)
-    t_Off = sum(TlistLow) / len(TlistLow)
-    v_on = sum(UlistHigh) / len(UlistHigh)
-    v_off = sum(UlistLow) / len(UlistLow)
+    if len(TlistHigh) == 0 and len(UlistHigh) == 0:
+        t_On = 0
+        v_on = 0
+    else:
+        t_On = sum(TlistHigh) / len(TlistHigh)
+        v_on = sum(UlistHigh) / len(UlistHigh)
+    if len(TlistLow) == 0 and len(UlistLow) == 0:
+        v_off = 0
+        t_Off = 0
+    else:
+        v_off = sum(UlistLow) / len(UlistLow)
+        t_Off = sum(TlistLow) / len(TlistLow)
     return t_On, t_Off, v_on, v_off
 
 
@@ -245,10 +252,10 @@ def otrisovkagraf_mod():
     загруженных в лист словарей
 
     """
+    tlist1, tlist2, vlist1, vlist2 = [], [], [], []
     fig_all = plt.figure(1, tight_layout=True)
     ax_f = fig_all.subplots()
     ax_c = ax_f.twinx()
-    # print(dataDict_list)
     for BD_data in Data.select():
         if BD_data.active:
             fig_one = plt.figure(2, tight_layout=True)
@@ -256,11 +263,11 @@ def otrisovkagraf_mod():
             ax_f1 = fig_one.subplots()
             ax_c1 = ax_f1.twinx()
             print("time1")
-            for BD_item in DataGraph.select():
-                tlist1 = BD_item.Edata1
-                vlist1 = BD_item.Edata2
-                tlist2 = BD_item.Udata1
-                vlist2 = BD_item.Udata2
+            for BD_item in DataGraph.select().where(DataGraph.index == BD_data.dirname):
+                tlist1.append(BD_item.Edata1)
+                vlist1.append(BD_item.Edata2)
+                tlist2.append(BD_item.Udata1)
+                vlist2.append(BD_item.Udata2)
             print("time2")
             ax_f.plot(tlist1, vlist1, 'r')
             ax_f.set_xlabel("Время, мс")
@@ -279,13 +286,12 @@ def otrisovkagraf_mod():
                 ax_c.plot(BD_data.dTph_On, BD_data.Uph_On, 'ob')
                 ax_c.plot(BD_data.dTph_Off, BD_data.Uph_Off, 'ob')
                 plt.show()
-
             print(BD_data.name)
             print(' -- ploted')
-
         else:
             print(BD_data.name)
             print(' -- NOT ploted')
+
 
 
 def plot_time_proc(DataClass=Data):
@@ -350,7 +356,7 @@ def fulldirload(aim_dir=default_test_dir, load_type=1, thickness=10.0):
         print("alone mesure load ___")
         print(aim_dir)
         alone_mesure(aim_dir)
-    threads = [ThrThr(name='first',thickness=thickness), ThrThr(name='second',thickness=thickness)]
+    threads = [ThrThr(name='first', thickness=thickness), ThrThr(name='second', thickness=thickness)]
     for thread in threads:
         thread.start()
     for thread in threads:
@@ -367,6 +373,6 @@ if __name__ == "__main__":
     for thread in threads:
         thread.join()
     # listslovarey()  # загрузка на основе списка единичных измерений в форме словарей включая определение времён
-    #otrisovkagraf_mod()  # отрисовка списка словарей единичных измерений
+    # otrisovkagraf_mod()  # отрисовка списка словарей единичных измерений
     plot_time_proc()
     plot_transpare_proc()
