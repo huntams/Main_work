@@ -4,9 +4,9 @@
 
 import sys
 import testcsvread
-from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QApplication, QGridLayout, QComboBox, QLineEdit, QFileDialog, \
+from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QApplication, QGridLayout, QComboBox, QLineEdit, QFileDialog, \
     QTableWidget, QTableWidgetItem, QCheckBox, QMessageBox
-from PyQt6.QtCore import QSize
+from PyQt5.QtCore import QSize
 
 # DefaultDataList = [[True, "all 001", 2.1, 10, 0.01, 1, 8, 3, ""], [False, "all 002", 4.1, 10, 0.03, 1, 8, 3, ""]]
 from db_worker import Data, Composition
@@ -82,10 +82,10 @@ class Tablica(QWidget):
                 self.table.setColumnWidth(7, 40)
         except Exception as e:
             msg = QMessageBox()
-            msg.setIcon(QMessageBox.Icon.Critical)
+            msg.setIcon(QMessageBox.Critical)
             msg.setText("Ошибка загрузки базы данных, попробуйте загрузить информацию с компьютера")
             msg.setWindowTitle("Ошибка")
-            msg.exec()
+            msg.exec_()
 
     def Plot_Data_Eimp_Uph(self):
         testcsvread.otrisovkagraf_mod()

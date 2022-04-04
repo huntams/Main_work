@@ -3,13 +3,16 @@
 """
 
 import sys
-from PyQt6.QtWidgets import QMainWindow, QMessageBox, QApplication, QDockWidget
-from PyQt6.QtGui import QIcon, QAction
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, qApp, QAction, QApplication, QDockWidget
+from PyQt5.QtGui import QIcon
 import myinterface
 import widTableData
 import datetime
+import main_widget
+
 now = datetime.datetime.now()
 cur_date = now.strftime("%d-%m-%Y")
+
 
 class Example(QMainWindow):
 
@@ -17,6 +20,14 @@ class Example(QMainWindow):
         super().__init__()
         self.set_menu_tools_UI()
         self.central_wid_table()
+        self.setWindowTitle("test plot")
+        # Status Bar
+        self.status = self.statusBar()
+        self.status.showMessage("Data loaded and plotted")
+
+        # Window dimensions
+        geometry = self.screen().availableGeometry()
+        self.setFixedSize(geometry.width() * 0.8, geometry.height() * 0.7)
 
     def Manual_read_Widget(self):
 
@@ -28,7 +39,8 @@ class Example(QMainWindow):
     def central_wid_table(self):
 
         self.listwidget2 = widTableData.Tablica()
-        self.setCentralWidget(self.listwidget2)
+        self.main_w = main_widget.Widget()
+        self.setCentralWidget(self.main_w)
 
     def set_menu_tools_UI(self):
 
@@ -40,7 +52,7 @@ class Example(QMainWindow):
         exitAction = QAction(QIcon('icons/exit.png'), '&Выход', self)
         exitAction.setShortcut('Ctrl+Q')
         exitAction.setStatusTip('Закрыть приложение')
-        exitAction.triggered.connect(QApplication.quit)
+        exitAction.triggered.connect(qApp.quit)
 
         self.statusBar()
 
@@ -56,9 +68,9 @@ class Example(QMainWindow):
 
     def closeEvent(self, event):
         reply = QMessageBox.question(self, 'Предупреждение',
-                                     "Вы действительно хотите выйти?", QMessageBox.StandardButton.Yes |
-                                     QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
-        if reply == QMessageBox.StandardButton.Yes:
+                                     "Вы действительно хотите выйти?", QMessageBox.Yes |
+                                     QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.Yes:
             event.accept()
         else:
             event.ignore()
@@ -69,4 +81,4 @@ if __name__ == '__main__':
     app.setWindowIcon(QIcon('LOGO-PDLC.png'))
     ex = Example()
     ex.show()
-    sys.exit(app.exec())
+    sys.exit(app.exec_())

@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import os
 import openpyxl
 
+from widTableData import Tablica
+
 alldata = []
 emaxlist = []
 csvlist = []

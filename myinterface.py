@@ -5,7 +5,7 @@
 import os
 import sys
 import testcsvread
-from PyQt6.QtWidgets import QWidget, QDoubleSpinBox, QPushButton, QApplication, QGridLayout, QComboBox, QLineEdit, \
+from PyQt5.QtWidgets import QWidget, QDoubleSpinBox, QPushButton, QApplication, QGridLayout, QComboBox, QLineEdit, \
     QFileDialog, QMessageBox
 
 dbdirname = ''
@@ -58,4 +58,4 @@ class Example(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = Example()
-    sys.exit(app.exec())
+    sys.exit(app.exec_())
