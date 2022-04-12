@@ -9,8 +9,6 @@ import matplotlib.pyplot as plt
 import os
 import openpyxl
 
-from widTableData import Tablica
-
 alldata = []
 emaxlist = []
 csvlist = []
@@ -337,7 +335,7 @@ def plot_transpare_proc(DataClass=Data):
     plt.subplot(2, 1, 2)
     plt.plot(Emax_list, Uph_ampl_list, 'k.-', label='UphMAX')
     plt.xlabel("Управляющее поле, В/мкм")
-    plt.ylabel("Прозпачность, В")
+    plt.ylabel("Прозрачность, В")
     plt.legend()
     plt.show()
 

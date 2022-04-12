@@ -5,6 +5,8 @@
 import sys
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, qApp, QAction, QApplication, QDockWidget
 from PyQt5.QtGui import QIcon
+from PyQt5.uic.properties import QtGui
+
 import myinterface
 import widTableData
 import datetime
@@ -24,10 +26,7 @@ class Example(QMainWindow):
         # Status Bar
         self.status = self.statusBar()
         self.status.showMessage("Data loaded and plotted")
-
         # Window dimensions
-        geometry = self.screen().availableGeometry()
-        self.setFixedSize(geometry.width() * 0.8, geometry.height() * 0.7)
 
     def Manual_read_Widget(self):
 
@@ -62,7 +61,8 @@ class Example(QMainWindow):
         fileMenu.addSeparator()
         fileMenu.addAction(exitAction)
 
-        self.resize(900, 800)  # setGeometry(300, 300, 300, 600)
+        geometry = self.screen().availableGeometry()
+        self.resize(geometry.width() * 0.8, geometry.height() * 0.7)  # setGeometry(300, 300, 300, 600)
         self.setWindowTitle('PDLC Reader')
         self.show()
 

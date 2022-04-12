@@ -7,7 +7,6 @@ import testcsvread
 from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QApplication, QGridLayout, QComboBox, QLineEdit, QFileDialog, \
     QTableWidget, QTableWidgetItem, QCheckBox, QMessageBox
 from PyQt5.QtCore import QSize
-
 # DefaultDataList = [[True, "all 001", 2.1, 10, 0.01, 1, 8, 3, ""], [False, "all 002", 4.1, 10, 0.03, 1, 8, 3, ""]]
 from db_worker import Data, Composition
 
