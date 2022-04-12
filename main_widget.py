@@ -1,12 +1,6 @@
-from PyQt5.QtCore import QDateTime, Qt
-from PyQt5.QtGui import QPainter
-from PyQt5.QtWidgets import (QWidget, QHeaderView, QHBoxLayout, QTableView,
-                             QSizePolicy, QPushButton)
-from PyQt5.QtChart import QChart, QChartView, QLineSeries, QDateTimeAxis, QValueAxis
-from db_worker import database, Composition, Membrane, Data, DataGraph
-from PySide6.QtWidgets import QApplication
+from PyQt5.QtWidgets import (QWidget, QHeaderView, QHBoxLayout,
+                             QSizePolicy)
 from widTableData import Tablica
-import sys
 from Plot_Wid import Plot
 
 class Widget(QWidget):
@@ -38,5 +32,3 @@ class Widget(QWidget):
         # Set the layout to the QWidget
         self.setLayout(self.main_layout)
         self.table_view.zapolnenietablici()
-
-

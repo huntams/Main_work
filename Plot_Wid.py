@@ -1,10 +1,8 @@
-from PyQt5.QtCore import QDateTime, Qt
 from PyQt5.QtGui import QPainter
-from PyQt5.QtWidgets import (QWidget, QHeaderView, QHBoxLayout, QTableView,
+from PyQt5.QtWidgets import (QWidget,
                              QSizePolicy, QPushButton, QGridLayout, QLabel)
 from PyQt5.QtChart import QChart, QChartView, QLineSeries, QDateTimeAxis, QValueAxis
-from db_worker import database, Composition, Membrane, Data, DataGraph
-import sys
+from db_worker import  Data, DataGraph
 
 
 class Plot(QWidget):
@@ -15,8 +13,10 @@ class Plot(QWidget):
         self.grid = QGridLayout()
         self.setLayout(self.grid)
         self.chart.setAnimationOptions(QChart.AllAnimations)
-        self.add_series_time_proc()
-
+        try:
+            self.add_series_time_proc()
+        except Exception as e:
+            print("Didn't except data base")
         size = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
 
         # Creating QChartView
@@ -37,7 +37,7 @@ class Plot(QWidget):
         self.grid.addWidget(plot_btn2, 0, 2, 1, 1)
 
         plot_btn3 = QPushButton('Отрисовка графиков данных', self)
-        plot_btn3.clicked.connect(self.add_series_transpare_proc)
+        plot_btn3.clicked.connect(self.addSeries_otrisovka_graf)
         self.grid.addWidget(plot_btn3, 0, 3, 1, 1)
 
     def add_series_transpare_proc(self):
@@ -84,6 +84,46 @@ class Plot(QWidget):
         self.chart.addSeries(self.series3)
         #
         #        # Setting X-axis
+        self.axis_x = QValueAxis()
+        self.axis_x.setTitleText("Управляющее поле, В/мкм")
+        self.chart.setAxisX(self.axis_x)
+        self.series.attachAxis(self.axis_x)
+        #        # Setting Y-axis
+        self.axis_y = QValueAxis()
+        self.axis_y.setTitleText("Время, мс")
+        self.chart.setAxisY(self.axis_y)
+        self.series.attachAxis(self.axis_y)
+        #     # Getting the color from the QChart to use it on the QTableView
+        color_name = self.series.pen().color().name()
+
+    def addSeries_otrisovka_graf(self):
+        self.chart.removeAllSeries()
+        self.series = QLineSeries()
+        self.series2 = QLineSeries()
+        self.series.setName("t_on")
+        self.series2.setName("t_off")
+        for BD_data in Data.select():
+            if BD_data.active:
+                print("time1")
+                for BD_item in DataGraph.select().where(DataGraph.index == BD_data.dirname):
+                    self.series.append(BD_item.Edata1, BD_item.Edata2)
+                    self.series2.append(BD_item.Udata1, BD_item.Udata2)
+                print("time2")
+                self.chart.addSeries(self.series)
+                self.chart.addSeries(self.series2)
+
+                if BD_data.Uph_active:
+                    print("YES")
+                    #self.series.append()
+
+                print(BD_data.name)
+                print(' -- ploted')
+            else:
+                print(BD_data.name)
+                print(' -- NOT ploted')
+                # Setting X-axis
+
+        self.chart_view.update()
         self.axis_x = QValueAxis()
         self.axis_x.setTitleText("Управляющее поле, В/мкм")
         self.chart.setAxisX(self.axis_x)
