@@ -50,7 +50,7 @@ class Tablica(QWidget):
         plot_btn.clicked.connect(self.Plot_Data_Eimp_Uph)
         grid.addWidget(plot_btn, 0, 2, 1, 1)
 
-        plot_btn2 = QPushButton('Отрисовать вычесленное', self)
+        plot_btn2 = QPushButton('Отрисовать вычисленное', self)
         plot_btn2.clicked.connect(self.Plot_TimeAndPhoto)
         grid.addWidget(plot_btn2, 0, 3, 1, 1)
 

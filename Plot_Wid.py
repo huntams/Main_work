@@ -1,8 +1,11 @@
 from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import (QWidget,
                              QSizePolicy, QPushButton, QGridLayout, QLabel)
-from PyQt5.QtChart import QChart, QChartView, QLineSeries, QDateTimeAxis, QValueAxis
-from db_worker import  Data, DataGraph
+from PyQt5.QtChart import QChart, QChartView, QLineSeries, QDateTimeAxis, QValueAxis, QScatterSeries
+from PyQt5.uic.properties import QtGui
+
+from db_worker import Data, DataGraph
+from widTableData import Tablica
 
 
 class Plot(QWidget):
@@ -36,33 +39,43 @@ class Plot(QWidget):
         plot_btn2.clicked.connect(self.add_series_transpare_proc)
         self.grid.addWidget(plot_btn2, 0, 2, 1, 1)
 
-        plot_btn3 = QPushButton('Отрисовка графиков данных', self)
+        plot_btn3 = QPushButton('Отрисовка вычисленного', self)
         plot_btn3.clicked.connect(self.addSeries_otrisovka_graf)
         self.grid.addWidget(plot_btn3, 0, 3, 1, 1)
 
-    def add_series_transpare_proc(self):
-        # Create QLineSeries
-        self.chart.removeAllSeries()
-        self.series = QLineSeries()
-        self.series.setName("UphMAX")
-        for BD_data in Data.select():
-            if BD_data.active:
-                self.series.append(BD_data.Emax, BD_data.Umax)
-                # Uph_ampl_list.append(BD_data.Umax)
-        self.chart.addSeries(self.series)
-
+    def axis_plot(self, x_axis, y_axis):
         #        # Setting X-axis
         self.axis_x = QValueAxis()
-        self.axis_x.setTitleText("Управляющее поле, В/мкм")
+        self.axis_x.setTitleText(x_axis)
         self.chart.setAxisX(self.axis_x)
         self.series.attachAxis(self.axis_x)
         #        # Setting Y-axis
         self.axis_y = QValueAxis()
-        self.axis_y.setTitleText("Прозрачность, В")
+        self.axis_y.setTitleText(y_axis)
         self.chart.setAxisY(self.axis_y)
         self.series.attachAxis(self.axis_y)
         #     # Getting the color from the QChart to use it on the QTableView
         color_name = self.series.pen().color().name()
+
+    def add_series_transpare_proc(self):
+        # Create QLineSeries
+        massive1, massive2 = [], []
+        self.chart.removeAllSeries()
+        self.series = QLineSeries()
+        series_dot = QScatterSeries(self.chart)
+        self.series.setName("UphMAX")
+        for BD_data in Data.select():
+            if BD_data.active:
+                massive1.append(BD_data.Emax)
+                massive2.append(BD_data.Umax)
+        massive1.sort()
+        massive2.sort()
+        for index in range(len(massive1)):
+            self.series.append(massive1[index], massive2[index])
+            series_dot.append(massive1[index], massive2[index])
+        self.chart.addSeries(self.series)
+        self.chart.addSeries(series_dot)
+        self.axis_plot("Управляющее поле, В/мкм", "Прозрачность, В")
 
     def add_series_time_proc(self):
         # Create QLineSeries
@@ -79,22 +92,12 @@ class Plot(QWidget):
                 self.series.append(BD_data.Emax, BD_data.dTph_On)
                 self.series2.append(BD_data.Emax, BD_data.dTph_Off)
                 self.series3.append(BD_data.Emax, BD_data.dTph_max)
+
         self.chart.addSeries(self.series)
         self.chart.addSeries(self.series2)
         self.chart.addSeries(self.series3)
         #
-        #        # Setting X-axis
-        self.axis_x = QValueAxis()
-        self.axis_x.setTitleText("Управляющее поле, В/мкм")
-        self.chart.setAxisX(self.axis_x)
-        self.series.attachAxis(self.axis_x)
-        #        # Setting Y-axis
-        self.axis_y = QValueAxis()
-        self.axis_y.setTitleText("Время, мс")
-        self.chart.setAxisY(self.axis_y)
-        self.series.attachAxis(self.axis_y)
-        #     # Getting the color from the QChart to use it on the QTableView
-        color_name = self.series.pen().color().name()
+        self.axis_plot("Управляющее поле, В/мкм", "Время, мс")
 
     def addSeries_otrisovka_graf(self):
         self.chart.removeAllSeries()
@@ -114,24 +117,11 @@ class Plot(QWidget):
 
                 if BD_data.Uph_active:
                     print("YES")
-                    #self.series.append()
+                    # self.series.append()
 
                 print(BD_data.name)
                 print(' -- ploted')
             else:
                 print(BD_data.name)
                 print(' -- NOT ploted')
-                # Setting X-axis
-
-        self.chart_view.update()
-        self.axis_x = QValueAxis()
-        self.axis_x.setTitleText("Управляющее поле, В/мкм")
-        self.chart.setAxisX(self.axis_x)
-        self.series.attachAxis(self.axis_x)
-        #        # Setting Y-axis
-        self.axis_y = QValueAxis()
-        self.axis_y.setTitleText("Время, мс")
-        self.chart.setAxisY(self.axis_y)
-        self.series.attachAxis(self.axis_y)
-        #     # Getting the color from the QChart to use it on the QTableView
-        color_name = self.series.pen().color().name()
+        self.axis_plot("Управляющее поле, В/мкм", "Время, мс")

@@ -126,7 +126,8 @@ def listslovarey(csvlist=csvlist, thickness=1.0):
             namedata["Timp_start"], namedata["Timp_stop"], namedata["dTimp"] = timpStartStop(namedata)  # [2]
             namedata["Uph_desc_step"] = descritizationSTEP(namedata["Udata"][1])
             print("work")
-            if ((namedata["Umax"] - min(namedata["Udata"][1])) / namedata["Uph_desc_step"]) < 10:
+            namedata["Tph_On"], namedata["Tph_Off"], namedata["Uph_On"], namedata["Uph_Off"] = tphOnOff(namedata)
+            if ((namedata["Umax"] - min(namedata["Udata"][1])) / namedata["Uph_desc_step"]) < 10 or namedata["Tph_Off"] - namedata["Timp_stop"]<=0:
                 # Запись общей информации плёнки
                 all_data = Data.create(membrane=new_membrane, dirname=izmerenie[0],
                                        name=izmerenie[0].split(os.path.sep)[-1],
@@ -143,7 +144,6 @@ def listslovarey(csvlist=csvlist, thickness=1.0):
                                        Uph_Off=0
                                        )
             else:
-                namedata["Tph_On"], namedata["Tph_Off"], namedata["Uph_On"], namedata["Uph_Off"] = tphOnOff(namedata)
                 # Запись общей информации плёнки
                 all_data = Data.create(membrane=new_membrane, dirname=izmerenie[0],
                                        name=izmerenie[0].split(os.path.sep)[-1],
@@ -161,14 +161,19 @@ def listslovarey(csvlist=csvlist, thickness=1.0):
                                        )
             # Запись Edata и Udata в таблицу
             items_data = []
+            switch = True
             for index in range(0, len(namedata["Edata"][0])):
-                items_data.append({
-                    "index": all_data.dirname,
-                    "Edata1": namedata["Edata"][0][index],
-                    "Edata2": namedata["Edata"][1][index],
-                    "Udata1": namedata["Udata"][0][index],
-                    "Udata2": namedata["Udata"][1][index]
-                })
+                if switch:
+                    items_data.append({
+                        "index": all_data.dirname,
+                        "Edata1": namedata["Edata"][0][index],
+                        "Edata2": namedata["Edata"][1][index],
+                        "Udata1": namedata["Udata"][0][index],
+                        "Udata2": namedata["Udata"][1][index]
+                    })
+                    switch = False
+                else:
+                    switch = True
             DataGraph.insert_many(items_data).execute()
             alldata.append(namedata)
 
