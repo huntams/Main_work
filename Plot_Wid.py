@@ -1,6 +1,6 @@
-from PyQt5.QtGui import QPainter
+from PyQt5.QtGui import QPainter, QPalette, QColor
 from PyQt5.QtWidgets import (QWidget,
-                             QSizePolicy, QPushButton, QGridLayout, QLabel)
+                             QSizePolicy, QPushButton, QGridLayout, QLabel, QComboBox)
 from PyQt5.QtChart import QChart, QChartView, QLineSeries, QDateTimeAxis, QValueAxis, QScatterSeries
 from PyQt5.uic.properties import QtGui
 
@@ -42,6 +42,7 @@ class Plot(QWidget):
         plot_btn3 = QPushButton('Отрисовка вычисленного', self)
         plot_btn3.clicked.connect(self.addSeries_otrisovka_graf)
         self.grid.addWidget(plot_btn3, 0, 3, 1, 1)
+
 
     def axis_plot(self, x_axis, y_axis):
         #        # Setting X-axis
@@ -86,7 +87,6 @@ class Plot(QWidget):
         self.series.setName("t_on")
         self.series2.setName("t_off")
         self.series3.setName("t_work")
-
         for BD_data in Data.select():
             if BD_data.active:
                 self.series.append(BD_data.Emax, BD_data.dTph_On)
@@ -100,7 +100,9 @@ class Plot(QWidget):
         self.axis_plot("Управляющее поле, В/мкм", "Время, мс")
 
     def addSeries_otrisovka_graf(self):
+        massive1, massive2 = [], []
         self.chart.removeAllSeries()
+        dot_series = QScatterSeries(self.chart)
         self.series = QLineSeries()
         self.series2 = QLineSeries()
         self.series.setName("t_on")
@@ -112,16 +114,15 @@ class Plot(QWidget):
                     self.series.append(BD_item.Edata1, BD_item.Edata2)
                     self.series2.append(BD_item.Udata1, BD_item.Udata2)
                 print("time2")
-                self.chart.addSeries(self.series)
-                self.chart.addSeries(self.series2)
-
                 if BD_data.Uph_active:
-                    print("YES")
-                    # self.series.append()
-
-                print(BD_data.name)
+                    dot_series.append(BD_data.dTph_On, BD_data.Uph_On)
+                    dot_series.append(BD_data.dTph_Off, BD_data.Uph_Off)
+                print(BD_data.name, end='')
                 print(' -- ploted')
             else:
-                print(BD_data.name)
+                print(BD_data.name, end='')
                 print(' -- NOT ploted')
+        self.chart.addSeries(self.series)
+        self.chart.addSeries(self.series2)
+        self.chart.addSeries(dot_series)
         self.axis_plot("Управляющее поле, В/мкм", "Время, мс")

@@ -127,7 +127,8 @@ def listslovarey(csvlist=csvlist, thickness=1.0):
             namedata["Uph_desc_step"] = descritizationSTEP(namedata["Udata"][1])
             print("work")
             namedata["Tph_On"], namedata["Tph_Off"], namedata["Uph_On"], namedata["Uph_Off"] = tphOnOff(namedata)
-            if ((namedata["Umax"] - min(namedata["Udata"][1])) / namedata["Uph_desc_step"]) < 10 or namedata["Tph_Off"] - namedata["Timp_stop"]<=0:
+            if ((namedata["Umax"] - min(namedata["Udata"][1])) / namedata["Uph_desc_step"]) < 10 or namedata[
+                "Tph_Off"] - namedata["Timp_stop"] <= 0:
                 # Запись общей информации плёнки
                 all_data = Data.create(membrane=new_membrane, dirname=izmerenie[0],
                                        name=izmerenie[0].split(os.path.sep)[-1],
@@ -161,9 +162,9 @@ def listslovarey(csvlist=csvlist, thickness=1.0):
                                        )
             # Запись Edata и Udata в таблицу
             items_data = []
-            switch = True
+            switch = 1
             for index in range(0, len(namedata["Edata"][0])):
-                if switch:
+                if switch % 10 == 0:
                     items_data.append({
                         "index": all_data.dirname,
                         "Edata1": namedata["Edata"][0][index],
@@ -171,9 +172,9 @@ def listslovarey(csvlist=csvlist, thickness=1.0):
                         "Udata1": namedata["Udata"][0][index],
                         "Udata2": namedata["Udata"][1][index]
                     })
-                    switch = False
+                    switch = 1
                 else:
-                    switch = True
+                    switch += 1
             DataGraph.insert_many(items_data).execute()
             alldata.append(namedata)
 
@@ -290,14 +291,12 @@ def otrisovkagraf_mod():
                 ax_c1.plot(BD_data.dTph_Off, BD_data.Uph_Off, 'ob')
                 ax_c.plot(BD_data.dTph_On, BD_data.Uph_On, 'ob')
                 ax_c.plot(BD_data.dTph_Off, BD_data.Uph_Off, 'ob')
-                plt.show()
             print(BD_data.name)
             print(' -- ploted')
         else:
             print(BD_data.name)
             print(' -- NOT ploted')
-
-
+        plt.show()
 
 def plot_time_proc(DataClass=Data):
     """
