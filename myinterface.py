@@ -30,6 +30,7 @@ class Example(QWidget):
         grid.addWidget(loadbutton, 1, 2, 1, 1)
         self.thicknessBox = QDoubleSpinBox()
         self.thicknessBox.setValue(35.0)
+        self.thicknessBox.setRange(0, 270)
         grid.addWidget(self.thicknessBox, 1, 3, 1, 1)
         self.loadingTypeWid = QComboBox()
         self.loadingTypeWid.addItems(['Пуск', 'Плёнка', 'Смесь_NA'])

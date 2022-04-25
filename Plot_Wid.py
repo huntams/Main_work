@@ -1,3 +1,5 @@
+import os
+
 from PyQt5.QtGui import QPainter, QPalette, QColor
 from PyQt5.QtWidgets import (QWidget,
                              QSizePolicy, QPushButton, QGridLayout, QLabel, QComboBox)
@@ -6,6 +8,7 @@ from PyQt5.uic.properties import QtGui
 
 from db_worker import Data, DataGraph
 from widTableData import Tablica
+import choice
 
 
 class Plot(QWidget):
@@ -36,13 +39,12 @@ class Plot(QWidget):
         self.grid.addWidget(plot_btn, 0, 1, 1, 1)
 
         plot_btn2 = QPushButton('Отрисовать график прозрачности от поля', self)
-        plot_btn2.clicked.connect(self.add_series_transpare_proc)
+        plot_btn2.clicked.connect(self.test_func)
         self.grid.addWidget(plot_btn2, 0, 2, 1, 1)
 
         plot_btn3 = QPushButton('Отрисовка вычисленного', self)
         plot_btn3.clicked.connect(self.addSeries_otrisovka_graf)
         self.grid.addWidget(plot_btn3, 0, 3, 1, 1)
-
 
     def axis_plot(self, x_axis, y_axis):
         #        # Setting X-axis
@@ -58,24 +60,30 @@ class Plot(QWidget):
         #     # Getting the color from the QChart to use it on the QTableView
         color_name = self.series.pen().color().name()
 
+    def test_func(self):
+        self.test = choice.Choicer()
+        self.test.qbtn.clicked.connect(self.add_series_transpare_proc)
+
     def add_series_transpare_proc(self):
         # Create QLineSeries
         massive1, massive2 = [], []
         self.chart.removeAllSeries()
-        self.series = QLineSeries()
-        series_dot = QScatterSeries(self.chart)
-        self.series.setName("UphMAX")
-        for BD_data in Data.select():
-            if BD_data.active:
-                massive1.append(BD_data.Emax)
-                massive2.append(BD_data.Umax)
-        massive1.sort()
-        massive2.sort()
-        for index in range(len(massive1)):
-            self.series.append(massive1[index], massive2[index])
-            series_dot.append(massive1[index], massive2[index])
-        self.chart.addSeries(self.series)
-        self.chart.addSeries(series_dot)
+        for info, item in enumerate(self.test.choice_mas):
+            self.series = QLineSeries()
+            series_dot = QScatterSeries(self.chart)
+            self.series.setName("UphMAX" + ' ' + str(info + 1))
+            for BD_data in Data.select():
+                if item == BD_data.membrane.composition.name_composition:
+                    if BD_data.active:
+                        massive1.append(BD_data.Emax)
+                        massive2.append(BD_data.Umax)
+            massive1.sort()
+            massive2.sort()
+            for index in range(len(massive1)):
+                self.series.append(massive1[index], massive2[index])
+                series_dot.append(massive1[index], massive2[index])
+            self.chart.addSeries(self.series)
+            self.chart.addSeries(series_dot)
         self.axis_plot("Управляющее поле, В/мкм", "Прозрачность, В")
 
     def add_series_time_proc(self):
