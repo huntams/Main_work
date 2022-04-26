@@ -6,7 +6,7 @@ import os
 import sys
 import testcsvread
 from PyQt5.QtWidgets import QWidget, QDoubleSpinBox, QPushButton, QApplication, QGridLayout, QComboBox, QLineEdit, \
-    QFileDialog, QMessageBox
+    QFileDialog, QMessageBox, QDesktopWidget
 
 dbdirname = ''
 
@@ -39,7 +39,12 @@ class Example(QWidget):
         self.ImyaDirrectory = QLineEdit()
         self.ImyaDirrectory.setText('Выберите дирректорию (...)')
         grid.addWidget(self.ImyaDirrectory, 2, 2, 1, 2)
-        self.setGeometry(300, 300, 600, 400)
+        #self.setGeometry(300, 300, 600, 400)
+        self.setFixedSize(500, 160)
+        win = self.frameGeometry()
+        pos = QDesktopWidget().availableGeometry().center()
+        win.moveCenter(pos)
+        self.move(win.topLeft())
         self.setWindowTitle('Загрузка исходных данных')
         self.show()
 

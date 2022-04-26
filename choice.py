@@ -42,7 +42,7 @@ class Choicer(QWidget):
         self.qbtn = QPushButton('Загрузить', self)
         self.qbtn.clicked.connect(self.Load_Button)
         grid.addWidget(self.qbtn, 2, 1, 1, 1)
-        self.resize(300, 400)
+        self.setFixedSize(300, 400)
         win = self.frameGeometry()
         pos = QDesktopWidget().availableGeometry().center()
         win.moveCenter(pos)

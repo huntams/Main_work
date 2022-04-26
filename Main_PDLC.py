@@ -31,7 +31,7 @@ class Example(QMainWindow):
     def Manual_read_Widget(self):
 
         self.listwidget = myinterface.Example()
-        self.listwidget.resize(500, 160)
+        self.listwidget.setFixedSize(500, 160)
         # self.setWindowTitle("PDLC Reader")
         self.listwidget.qbtn.clicked.connect(self.listwidget2.zapolnenietablici)
 

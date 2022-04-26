@@ -99,8 +99,8 @@ class Plot(QWidget):
             self.series2 = QLineSeries()
             self.series3 = QLineSeries()
             self.series.setName("t_on" + ' ' + str(item))
-            self.series2.setName("t_off" + ' ' + str(item))
-            self.series3.setName("t_work" + ' ' + str(item))
+            self.series2.setName("t_off")
+            self.series3.setName("t_work")
             for BD_data in Data.select():
                 if item == BD_data.membrane.composition.name_composition:
                     if BD_data.active:
