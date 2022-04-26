@@ -1,31 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-"""
-Created on 2019/10/2
-@author: Irony
-@site: https://pyqt5.com , https://github.com/892768447
-@email: 892768447@qq.com
-@file: ChartThemes
-@description: 图表主题动画等
-"""
-#############################################################################
-##
-## Copyright (C) 2013 Riverbank Computing Limited
-## Copyright (C) 2012 Digia Plc
-## All rights reserved.
-##
-## This file is part of the PyQtChart examples.
-##
-## $QT_BEGIN_LICENSE$
-## Licensees holding valid Qt Commercial licenses may use this file in
-## accordance with the Qt Commercial License Agreement provided with the
-## Software or, alternatively, in accordance with the terms contained in
-## a written agreement between you and Digia.
-## $QT_END_LICENSE$
-##
-#############################################################################
-
 
 import random
 
