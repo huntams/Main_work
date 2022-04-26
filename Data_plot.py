@@ -1,91 +1,363 @@
-from PySide6.QtCore import QDateTime, Qt
-from PySide6.QtGui import QPainter
-from PySide6.QtWidgets import (QWidget, QHeaderView, QHBoxLayout, QTableView,
-                               QSizePolicy)
-from PySide6.QtCharts import QChart, QChartView, QLineSeries, QDateTimeAxis, QValueAxis
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-from table_model import CustomTableModel
+"""
+Created on 2019/10/2
+@author: Irony
+@site: https://pyqt5.com , https://github.com/892768447
+@email: 892768447@qq.com
+@file: ChartThemes
+@description: 图表主题动画等
+"""
+#############################################################################
+##
+## Copyright (C) 2013 Riverbank Computing Limited
+## Copyright (C) 2012 Digia Plc
+## All rights reserved.
+##
+## This file is part of the PyQtChart examples.
+##
+## $QT_BEGIN_LICENSE$
+## Licensees holding valid Qt Commercial licenses may use this file in
+## accordance with the Qt Commercial License Agreement provided with the
+## Software or, alternatively, in accordance with the terms contained in
+## a written agreement between you and Digia.
+## $QT_END_LICENSE$
+##
+#############################################################################
 
 
-class Widget(QWidget):
-    def __init__(self, data):
-        QWidget.__init__(self)
+import random
 
-        # Getting the Model
-        self.model = CustomTableModel(data)
+from PyQt5.QtChart import (QAreaSeries, QBarSet, QChart, QChartView,
+                           QLineSeries, QPieSeries, QScatterSeries, QSplineSeries,
+                           QStackedBarSeries)
+from PyQt5.QtCore import pyqtSlot, QPointF, Qt
+from PyQt5.QtGui import QColor, QPainter, QPalette
+from PyQt5.QtWidgets import (QCheckBox, QComboBox, QGridLayout, QHBoxLayout,
+                             QLabel, QSizePolicy, QWidget)
 
-        # Creating a QTableView
-        self.table_view = QTableView()
-        self.table_view.setModel(self.model)
 
-        # QTableView Headers
-        resize = QHeaderView.ResizeToContents
-        self.horizontal_header = self.table_view.horizontalHeader()
-        self.vertical_header = self.table_view.verticalHeader()
-        self.horizontal_header.setSectionResizeMode(resize)
-        self.vertical_header.setSectionResizeMode(resize)
-        self.horizontal_header.setStretchLastSection(True)
+class ThemeWidget(QWidget):
 
-        # Creating QChart
-        self.chart = QChart()
-        self.chart.setAnimationOptions(QChart.AllAnimations)
-        self.add_series("Magnitude (Column 1)", [0, 1])
+    def __init__(self, parent=None):
+        super(ThemeWidget, self).__init__(parent)
 
-        # Creating QChartView
-        self.chart_view = QChartView(self.chart)
-        self.chart_view.setRenderHint(QPainter.Antialiasing)
+        self.m_charts = []
+        self.m_listCount = 3
+        self.m_valueMax = 10
+        self.m_valueCount = 7
+        self.m_dataTable = self.generateRandomData(self.m_listCount,
+                                                   self.m_valueMax, self.m_valueCount)
+        self.m_themeComboBox = self.createThemeBox()
+        self.m_antialiasCheckBox = QCheckBox("Anti-aliasing")
+        self.m_animatedComboBox = self.createAnimationBox()
+        self.m_legendComboBox = self.createLegendBox()
 
-        # QWidget Layout
-        self.main_layout = QHBoxLayout()
-        size = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        self.connectSignals()
 
-        # Left layout
-        size.setHorizontalStretch(1)
-        self.table_view.setSizePolicy(size)
-        self.main_layout.addWidget(self.table_view)
+        # Create the layout.
+        baseLayout = QGridLayout()
+        settingsLayout = QHBoxLayout()
+        settingsLayout.addWidget(QLabel("Theme:"))
+        settingsLayout.addWidget(self.m_themeComboBox)
+        settingsLayout.addWidget(QLabel("Animation:"))
+        settingsLayout.addWidget(self.m_animatedComboBox)
+        settingsLayout.addWidget(QLabel("Legend:"))
+        settingsLayout.addWidget(self.m_legendComboBox)
+        settingsLayout.addWidget(self.m_antialiasCheckBox)
+        settingsLayout.addStretch()
+        baseLayout.addLayout(settingsLayout, 0, 0, 1, 3)
 
-        # Right Layout
-        size.setHorizontalStretch(4)
-        self.chart_view.setSizePolicy(size)
-        self.main_layout.addWidget(self.chart_view)
+        # Create the charts.
+        chartView = QChartView(self.createAreaChart())
+        baseLayout.addWidget(chartView, 1, 0)
+        self.m_charts.append(chartView)
 
-        # Set the layout to the QWidget
-        self.setLayout(self.main_layout)
+        chartView = QChartView(self.createBarChart(self.m_valueCount))
+        baseLayout.addWidget(chartView, 1, 1)
+        self.m_charts.append(chartView)
 
-    def add_series(self, name, columns):
-        # Create QLineSeries
-        self.series = QLineSeries()
-        self.series.setName(name)
+        chartView = QChartView(self.createLineChart())
+        baseLayout.addWidget(chartView, 1, 2)
+        self.m_charts.append(chartView)
 
-        # Filling QLineSeries
-        for i in range(self.model.rowCount()):
-            # Getting the data
-            t = self.model.index(i, 0).data()
-            date_fmt = "yyyy-MM-dd HH:mm:ss.zzz"
+        chartView = QChartView(self.createPieChart())
+        # Funny things happen if the pie slice labels no not fit the screen...
+        chartView.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+        baseLayout.addWidget(chartView, 2, 0)
+        self.m_charts.append(chartView)
 
-            x = QDateTime().fromString(t, date_fmt).toSecsSinceEpoch()
-            y = float(self.model.index(i, 1).data())
+        chartView = QChartView(self.createSplineChart())
+        baseLayout.addWidget(chartView, 2, 1)
+        self.m_charts.append(chartView)
 
-            if x > 0 and y > 0:
-                self.series.append(x, y)
+        chartView = QChartView(self.createScatterChart())
+        baseLayout.addWidget(chartView, 2, 2)
+        self.m_charts.append(chartView)
 
-        self.chart.addSeries(self.series)
+        self.setLayout(baseLayout)
 
-        # Setting X-axis
-        self.axis_x = QDateTimeAxis()
-        self.axis_x.setTickCount(10)
-        self.axis_x.setFormat("dd.MM (h:mm)")
-        self.axis_x.setTitleText("Date")
-        self.chart.addAxis(self.axis_x, Qt.AlignBottom)
-        self.series.attachAxis(self.axis_x)
-        # Setting Y-axis
-        self.axis_y = QValueAxis()
-        self.axis_y.setTickCount(10)
-        self.axis_y.setLabelFormat("%.2f")
-        self.axis_y.setTitleText("Magnitude")
-        self.chart.addAxis(self.axis_y, Qt.AlignLeft)
-        self.series.attachAxis(self.axis_y)
+        # Set the defaults.
+        self.m_antialiasCheckBox.setChecked(True)
+        self.updateUI()
 
-        # Getting the color from the QChart to use it on the QTableView
-        color_name = self.series.pen().color().name()
-          self.model.color = f"{color_name}"
+    def connectSignals(self):
+        self.m_themeComboBox.currentIndexChanged.connect(self.updateUI)
+        self.m_antialiasCheckBox.toggled.connect(self.updateUI)
+        self.m_animatedComboBox.currentIndexChanged.connect(self.updateUI)
+        self.m_legendComboBox.currentIndexChanged.connect(self.updateUI)
+
+    def generateRandomData(self, listCount, valueMax, valueCount):
+        random.seed()
+
+        dataTable = []
+
+        for i in range(listCount):
+            dataList = []
+            yValue = 0.0
+            f_valueCount = float(valueCount)
+
+            for j in range(valueCount):
+                yValue += random.uniform(0, valueMax) / f_valueCount
+                value = QPointF(
+                    j + random.random() * self.m_valueMax / f_valueCount,
+                    yValue)
+                label = "Slice " + str(i) + ":" + str(j)
+                dataList.append((value, label))
+
+            dataTable.append(dataList)
+
+        return dataTable
+
+    def createThemeBox(self):
+        themeComboBox = QComboBox()
+
+        themeComboBox.addItem("Light", QChart.ChartThemeLight)
+        themeComboBox.addItem("Blue Cerulean", QChart.ChartThemeBlueCerulean)
+        themeComboBox.addItem("Dark", QChart.ChartThemeDark)
+        themeComboBox.addItem("Brown Sand", QChart.ChartThemeBrownSand)
+        themeComboBox.addItem("Blue NCS", QChart.ChartThemeBlueNcs)
+        themeComboBox.addItem("High Contrast", QChart.ChartThemeHighContrast)
+        themeComboBox.addItem("Blue Icy", QChart.ChartThemeBlueIcy)
+
+        return themeComboBox
+
+    def createAnimationBox(self):
+        animationComboBox = QComboBox()
+
+        animationComboBox.addItem("No Animations", QChart.NoAnimation)
+        animationComboBox.addItem("GridAxis Animations", QChart.GridAxisAnimations)
+        animationComboBox.addItem("Series Animations", QChart.SeriesAnimations)
+        animationComboBox.addItem("All Animations", QChart.AllAnimations)
+
+        return animationComboBox
+
+    def createLegendBox(self):
+        legendComboBox = QComboBox()
+
+        legendComboBox.addItem("No Legend ", 0)
+        legendComboBox.addItem("Legend Top", Qt.AlignTop)
+        legendComboBox.addItem("Legend Bottom", Qt.AlignBottom)
+        legendComboBox.addItem("Legend Left", Qt.AlignLeft)
+        legendComboBox.addItem("Legend Right", Qt.AlignRight)
+
+        return legendComboBox
+
+    def createAreaChart(self):
+        chart = QChart()
+        chart.setTitle("Area chart")
+
+        # The lower series is initialized to zero values.
+        lowerSeries = None
+        y_points = []
+
+        for i, data_list in enumerate(self.m_dataTable):
+            upperSeries = QLineSeries(chart)
+            for j, (value, _) in enumerate(data_list):
+                y = value.y()
+
+                if lowerSeries is None:
+                    upperSeries.append(QPointF(j, y))
+                    y_points.append(y)
+                else:
+                    new_y = y_points[i] + y
+                    upperSeries.append(QPointF(j, new_y))
+                    y_points[j] += new_y
+
+            area = QAreaSeries(upperSeries, lowerSeries)
+            area.setName("Series " + str(i))
+            chart.addSeries(area)
+            lowerSeries = upperSeries
+
+        chart.createDefaultAxes()
+
+        return chart
+
+    def createBarChart(self, valueCount):
+        chart = QChart()
+        chart.setTitle("Bar chart")
+
+        series = QStackedBarSeries(chart)
+
+        for i, data_list in enumerate(self.m_dataTable):
+            set = QBarSet("Bar set " + str(i))
+            for value, _ in data_list:
+                set << value.y()
+
+            series.append(set)
+
+        chart.addSeries(series)
+        chart.createDefaultAxes()
+
+        return chart
+
+    def createLineChart(self):
+        chart = QChart()
+        chart.setTitle("Line chart")
+
+        for i, data_list in enumerate(self.m_dataTable):
+            series = QLineSeries(chart)
+            for value, _ in data_list:
+                series.append(value)
+
+            series.setName("Series " + str(i))
+            chart.addSeries(series)
+
+        chart.createDefaultAxes()
+
+        return chart
+
+    def createPieChart(self):
+        chart = QChart()
+        chart.setTitle("Pie chart")
+
+        pieSize = 1.0 / len(self.m_dataTable)
+
+        for i, data_list in enumerate(self.m_dataTable):
+            series = QPieSeries(chart)
+            for value, label in data_list:
+                slice = series.append(label, value.y())
+                if len(series) == 1:
+                    slice.setLabelVisible()
+                    slice.setExploded()
+
+            hPos = (pieSize / 2) + (i / float(len(self.m_dataTable)))
+            series.setPieSize(pieSize)
+            series.setHorizontalPosition(hPos)
+            series.setVerticalPosition(0.5)
+
+            chart.addSeries(series)
+
+        return chart
+
+    def createSplineChart(self):
+        chart = QChart()
+        chart.setTitle("Spline chart")
+
+        for i, data_list in enumerate(self.m_dataTable):
+            series = QSplineSeries(chart)
+            for value, _ in data_list:
+                series.append(value)
+
+            series.setName("Series " + str(i))
+            chart.addSeries(series)
+
+        chart.createDefaultAxes()
+
+        return chart
+
+    def createScatterChart(self):
+        chart = QChart()
+        chart.setTitle("Scatter chart")
+
+        for i, data_list in enumerate(self.m_dataTable):
+            series = QScatterSeries(chart)
+            for value, _ in data_list:
+                series.append(value)
+
+            series.setName("Series " + str(i))
+            chart.addSeries(series)
+
+        chart.createDefaultAxes()
+
+        return chart
+
+    @pyqtSlot()
+    def updateUI(self):
+        theme = self.m_themeComboBox.itemData(
+            self.m_themeComboBox.currentIndex())
+
+        if self.m_charts[0].chart().theme() != theme:
+            for chartView in self.m_charts:
+                chartView.chart().setTheme(theme)
+
+            pal = self.window().palette()
+
+            if theme == QChart.ChartThemeLight:
+                pal.setColor(QPalette.Window, QColor(0xf0f0f0))
+                pal.setColor(QPalette.WindowText, QColor(0x404044))
+            elif theme == QChart.ChartThemeDark:
+                pal.setColor(QPalette.Window, QColor(0x121218))
+                pal.setColor(QPalette.WindowText, QColor(0xd6d6d6))
+            elif theme == QChart.ChartThemeBlueCerulean:
+                pal.setColor(QPalette.Window, QColor(0x40434a))
+                pal.setColor(QPalette.WindowText, QColor(0xd6d6d6))
+            elif theme == QChart.ChartThemeBrownSand:
+                pal.setColor(QPalette.Window, QColor(0x9e8965))
+                pal.setColor(QPalette.WindowText, QColor(0x404044))
+            elif theme == QChart.ChartThemeBlueNcs:
+                pal.setColor(QPalette.Window, QColor(0x018bba))
+                pal.setColor(QPalette.WindowText, QColor(0x404044))
+            elif theme == QChart.ChartThemeHighContrast:
+                pal.setColor(QPalette.Window, QColor(0xffab03))
+                pal.setColor(QPalette.WindowText, QColor(0x181818))
+            elif theme == QChart.ChartThemeBlueIcy:
+                pal.setColor(QPalette.Window, QColor(0xcee7f0))
+                pal.setColor(QPalette.WindowText, QColor(0x404044))
+            else:
+                pal.setColor(QPalette.Window, QColor(0xf0f0f0))
+                pal.setColor(QPalette.WindowText, QColor(0x404044))
+
+            self.window().setPalette(pal)
+
+        checked = self.m_antialiasCheckBox.isChecked()
+        for chartView in self.m_charts:
+            chartView.setRenderHint(QPainter.Antialiasing, checked)
+
+        options = QChart.AnimationOptions(
+            self.m_animatedComboBox.itemData(
+                self.m_animatedComboBox.currentIndex()))
+
+        if self.m_charts[0].chart().animationOptions() != options:
+            for chartView in self.m_charts:
+                chartView.chart().setAnimationOptions(options)
+
+        alignment = self.m_legendComboBox.itemData(
+            self.m_legendComboBox.currentIndex())
+
+        for chartView in self.m_charts:
+            legend = chartView.chart().legend()
+
+            if alignment == 0:
+                legend.hide()
+            else:
+                legend.setAlignment(Qt.Alignment(alignment))
+                legend.show()
+
+
+if __name__ == '__main__':
+    import sys
+
+    from PyQt5.QtWidgets import QApplication, QMainWindow
+
+    app = QApplication(sys.argv)
+
+    window = QMainWindow()
+    widget = ThemeWidget()
+    window.setCentralWidget(widget)
+    window.resize(900, 600)
+    window.show()
+
+    sys.exit(app.exec_())
+

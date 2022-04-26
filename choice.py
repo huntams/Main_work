@@ -56,7 +56,10 @@ class Choicer(QWidget):
         for items in range(self.table.rowCount()):
             if self.table.cellWidget(items, 1).checkState() == 2:
                 self.choice_mas.append(self.table.item(items, 0).text())
-        self.close()
+        if not self.choice_mas:
+            QMessageBox.warning(self, 'Предупреждение', "Выберите как минимум один состав")
+        else:
+            self.close()
 
     def zapol(self):
         try:

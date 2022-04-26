@@ -107,17 +107,16 @@ def listslovarey(csvlist=csvlist, thickness=1.0):
     """
     Словари.
     """
-    # Запись информации в таблицу состава
-    new_composition = Composition(name_composition=csvlist[0][0].split(os.path.sep)[-2])
-    new_composition.save()
-    # Запись информации в таблицу плёнки
-    new_membrane = Membrane(composition=new_composition,
-                            diametr=csvlist[0][0].split(os.path.sep)[-2][
-                                    csvlist[0][0].split(os.path.sep)[-2].find("=") + 1:])
-    new_membrane.save()
-    for izmerenie in csvlist:
-        if Data.select().where(Data.name == izmerenie[0].split(os.path.sep)[-1]).count() == 0:
-
+    if Data.select().where(Data.name == csvlist[0][0].split(os.path.sep)[-1]).count() == 0:
+        # Запись информации в таблицу состава
+        new_composition = Composition(name_composition=csvlist[0][0].split(os.path.sep)[-2])
+        new_composition.save()
+        # Запись информации в таблицу плёнки
+        new_membrane = Membrane(composition=new_composition,
+                                diametr=csvlist[0][0].split(os.path.sep)[-2][
+                                        csvlist[0][0].split(os.path.sep)[-2].find("=") + 1:])
+        new_membrane.save()
+        for izmerenie in csvlist:
             namedata = {}
             namedata["Edata"] = chtenieField(os.path.join(izmerenie[0], izmerenie[1][0]), thickness)
             namedata["Udata"] = chteniePhoto(os.path.join(izmerenie[0], izmerenie[1][1]), thickness)
