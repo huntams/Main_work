@@ -77,8 +77,11 @@ class Example(QMainWindow):
 
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon('LOGO-PDLC.png'))
-    ex = Example()
-    ex.show()
-    sys.exit(app.exec_())
+    try:
+        app = QApplication(sys.argv)
+        app.setWindowIcon(QIcon('LOGO-PDLC.png'))
+        ex = Example()
+        ex.show()
+        sys.exit(app.exec_())
+    except Exception as e:
+        print(e)
