@@ -3,6 +3,9 @@
 """
 
 import sys
+
+from PyQt5 import QtGui
+
 import testcsvread
 from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QApplication, QGridLayout, QComboBox, QLineEdit, QFileDialog, \
     QTableWidget, QTableWidgetItem, QCheckBox, QMessageBox
@@ -14,7 +17,7 @@ from db_worker import Data, Composition
 class Tablica(QWidget):
     def __init__(self):
         super().__init__()
-
+        self.color_name = []
         grid = QGridLayout()
         self.setLayout(grid)
 
@@ -54,9 +57,14 @@ class Tablica(QWidget):
         plot_btn2.clicked.connect(self.Plot_TimeAndPhoto)
         grid.addWidget(plot_btn2, 0, 3, 1, 1)
 
+    def set_color(self, color_name):
+        self.color_name = color_name
+
     def zapolnenietablici(self):
         try:
-
+            print(self.color_name)
+            print(self.table.rowCount())
+            peremennya = '#209fdf'
             self.table.setRowCount(len(Data.select()))
             # self.table.setItem()
             for i, izm in enumerate(Data.select()):
@@ -74,12 +82,23 @@ class Tablica(QWidget):
                 self.table.setItem(i, 3, QTableWidgetItem("{:.1f}".format(izm.dTimp)))
                 self.table.setColumnWidth(3, 50)
                 self.table.setItem(i, 5, QTableWidgetItem("{:.1f}".format(izm.dTph_On)))
+                # self.table.item(i, 5).setBackground(QtGui.QColor(peremennya))
+                # self.table.item(i, 5).setStyleSheet('background:'+self.color_name)
                 self.table.setColumnWidth(5, 40)
                 self.table.setItem(i, 6, QTableWidgetItem("{:.1f}".format(izm.dTph_Off)))
                 self.table.setColumnWidth(6, 40)
                 self.table.setItem(i, 7, QTableWidgetItem("{:.1f}".format(izm.dTph_max)))
                 self.table.setColumnWidth(7, 40)
+                for index in range(1, len(self.color_name)):
+                    if self.color_name[index] == self.table.item(i, 0).text():
+                        if len(self.color_name) % 4 == 0 and self.color_name[index - 2] != self.table.item(i, 0).text():
+                            self.table.item(i, 5).setBackground(QtGui.QColor(self.color_name[index - 3]))
+                            self.table.item(i, 6).setBackground(QtGui.QColor(self.color_name[index - 2]))
+                            self.table.item(i, 7).setBackground(QtGui.QColor(self.color_name[index - 1]))
+                        else:
+                            self.table.item(i, 4).setBackground(QtGui.QColor(self.color_name[index - 1]))
         except Exception as e:
+            print(e)
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Critical)
             msg.setText("Ошибка загрузки базы данных, попробуйте загрузить информацию с компьютера")

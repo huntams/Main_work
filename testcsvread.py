@@ -163,7 +163,7 @@ def listslovarey(csvlist=csvlist, thickness=1.0):
             items_data = []
             switch = 1
             for index in range(0, len(namedata["Edata"][0])):
-                if switch % 10 == 0:
+                if switch % 25 == 0:
                     items_data.append({
                         "index": all_data.dirname,
                         "Edata1": namedata["Edata"][0][index],

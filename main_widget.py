@@ -1,7 +1,12 @@
+from PyQt5 import QtGui
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QWidget, QHeaderView, QHBoxLayout,
                              QSizePolicy)
+
+from db_worker import Data
 from widTableData import Tablica
 from Plot_Wid import Plot
+
 
 class Widget(QWidget):
     def __init__(self):
@@ -28,7 +33,12 @@ class Widget(QWidget):
         # Right Layout
         self.chart_view.setSizePolicy(size)
         self.main_layout.addWidget(self.chart_view)
-
         # Set the layout to the QWidget
         self.setLayout(self.main_layout)
-        self.table_view.zapolnenietablici()
+
+
+    def reload(self):
+        for info, BD_data in enumerate(Data.select()):
+            if BD_data.membrane.composition.name_composition == self.table_view.table.item(info, 0):
+                informations = self.table_view.table.findItems(str(BD_data.Emax), Qt.MatchExactly)
+                informations[0].setBackground(QtGui.QColor(self.chart_view.color_name[0]))
