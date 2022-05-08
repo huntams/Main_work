@@ -36,7 +36,6 @@ class Widget(QWidget):
         # Set the layout to the QWidget
         self.setLayout(self.main_layout)
 
-
     def reload(self):
         for info, BD_data in enumerate(Data.select()):
             if BD_data.membrane.composition.name_composition == self.table_view.table.item(info, 0):

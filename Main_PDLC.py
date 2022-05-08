@@ -31,7 +31,7 @@ class Example(QMainWindow):
         # Status Bar
         self.status = self.statusBar()
         self.status.showMessage("Data loaded and plotted")
-        #self.main_w.chart_view.choice_wid.qbtn.clicked.connect(self.test_test)
+        # self.main_w.chart_view.choice_wid.qbtn.clicked.connect(self.test_test)
         self.main_w.chart_view.plot_btn.clicked.connect(self.prosto_test)
         self.main_w.chart_view.plot_btn2.clicked.connect(self.prosto_test)
         self.main_w.chart_view.plot_btn3.clicked.connect(self.prosto_test)
@@ -44,8 +44,10 @@ class Example(QMainWindow):
         self.listwidget.setFixedSize(500, 160)
         # self.setWindowTitle("PDLC Reader")
         self.listwidget.qbtn.clicked.connect(self.main_w.table_view.zapolnenietablici)
+
     def prosto_test(self):
         self.main_w.chart_view.choice_wid.qbtn.clicked.connect(self.test_test)
+
     def test_test(self):
         self.main_w.table_view.color_name = self.main_w.chart_view.color_name
         print(self.main_w.table_view.color_name)

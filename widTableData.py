@@ -91,7 +91,7 @@ class Tablica(QWidget):
                 self.table.setColumnWidth(7, 40)
                 for index in range(1, len(self.color_name)):
                     if self.color_name[index] == self.table.item(i, 0).text():
-                        if len(self.color_name) % 4 == 0 and self.color_name[index - 2] != self.table.item(i, 0).text():
+                        if self.color_name[index - 2][0] == '#':
                             self.table.item(i, 5).setBackground(QtGui.QColor(self.color_name[index - 3]))
                             self.table.item(i, 6).setBackground(QtGui.QColor(self.color_name[index - 2]))
                             self.table.item(i, 7).setBackground(QtGui.QColor(self.color_name[index - 1]))

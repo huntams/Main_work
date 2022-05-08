@@ -107,7 +107,10 @@ def listslovarey(csvlist=csvlist, thickness=1.0):
     """
     Словари.
     """
-    if Data.select().where(Data.name == csvlist[0][0].split(os.path.sep)[-1]).count() == 0:
+    if Composition.select().where(Composition.name_composition == csvlist[0][0].split(os.path.sep)[-2]).count() == 0:
+        # if Data.select().where(Data.name == csvlist[0][0].split(os.path.sep)[-2]).count() == 0:
+        print(csvlist[0][0].split(os.path.sep)[-1])
+        print(csvlist[0][0].split(os.path.sep)[-2])
         # Запись информации в таблицу состава
         new_composition = Composition(name_composition=csvlist[0][0].split(os.path.sep)[-2])
         new_composition.save()
@@ -296,6 +299,7 @@ def otrisovkagraf_mod():
             print(BD_data.name)
             print(' -- NOT ploted')
         plt.show()
+
 
 def plot_time_proc(DataClass=Data):
     """

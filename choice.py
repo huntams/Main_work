@@ -52,7 +52,7 @@ class Choicer(QWidget):
         self.zapol()
 
     def Load_Button(self):
-        self.choice_mas=[]
+        self.choice_mas = []
         for items in range(self.table.rowCount()):
             if self.table.cellWidget(items, 1).checkState() == 2:
                 self.choice_mas.append(self.table.item(items, 0).text())
