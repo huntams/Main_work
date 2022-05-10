@@ -57,11 +57,13 @@ class Example(QMainWindow):
                 self.main_w.chart_view.name = self.main_w.table_view.table.item(ix.row(), ix.column()).text()
                 self.main_w.chart_view.name2 = self.main_w.table_view.table.item(ix.row(), 0).text()
                 self.main_w.chart_view.add_series_otrisovka_graf()
+                self.test_test()
             if ix.column()== 4:
                 self.main_w.chart_view.name = self.main_w.table_view.table.item(ix.row(), 1).text()
                 self.main_w.chart_view.name2 = self.main_w.table_view.table.item(ix.row(), 0).text()
                 self.main_w.chart_view.name_dot = self.main_w.table_view.table.item(ix.row(), ix.column()).text()
                 self.main_w.chart_view.add_series_transpare_proc()
+                self.test_test()
                 print('its Ph.Umax:{}'.format(self.main_w.table_view.table.item(ix.row(),ix.column()).text()))
             # print('Row: {0},column:{1}, text:{2}'.format(ix.row(),
             #                                             ix.column(),
@@ -74,7 +76,6 @@ class Example(QMainWindow):
 
     def test_test(self):
         self.main_w.table_view.color_name = self.main_w.chart_view.color_name
-        print(self.main_w.table_view.color_name)
         self.main_w.table_view.zapolnenietablici()
 
     def central_wid_table(self):

@@ -62,8 +62,6 @@ class Tablica(QWidget):
 
     def zapolnenietablici(self):
         try:
-            print(self.color_name)
-            print(self.table.rowCount())
             peremennya = '#209fdf'
             self.table.setRowCount(len(Data.select()))
             # self.table.setItem()
@@ -77,7 +75,7 @@ class Tablica(QWidget):
                 self.table.setColumnWidth(1, 70)
                 self.table.setItem(i, 2, QTableWidgetItem("{:.1f}".format(izm.Emax)))
                 self.table.setColumnWidth(2, 50)
-                self.table.setItem(i, 4, QTableWidgetItem("{:.3f}".format(izm.Umax)))
+                self.table.setItem(i, 4, QTableWidgetItem("{}".format(izm.Umax)))
                 self.table.setColumnWidth(4, 70)
                 self.table.setItem(i, 3, QTableWidgetItem("{:.1f}".format(izm.dTimp)))
                 self.table.setColumnWidth(3, 50)
