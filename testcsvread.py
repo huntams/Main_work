@@ -156,7 +156,7 @@ def listslovarey(csvlist=csvlist, thickness=1.0):
                                        Uph_desc_step=descritizationSTEP(namedata["Udata"][1]),
                                        dTph_On=namedata["Tph_On"] - namedata["Timp_start"],
                                        dTimp=namedata["dTimp"],
-                                       dTph_Off=namedata["Tph_Off"] - namedata["Timp_stop"],
+                                       dTph_Off=namedata["Tph_Off"] - namedata["Timp_stop"]+10,
                                        dTph_max=namedata["Timp_stop"] - namedata["Tph_On"],
                                        Uph_active=True,
                                        Uph_On=namedata["Uph_On"],
@@ -164,7 +164,7 @@ def listslovarey(csvlist=csvlist, thickness=1.0):
                                        )
             # Запись Edata и Udata в таблицу
             items_data = []
-            switch = 1
+            switch = 0
             for index in range(0, len(namedata["Edata"][0])):
                 if switch % 25 == 0:
                     items_data.append({
@@ -290,15 +290,16 @@ def otrisovkagraf_mod():
             # Отрисовка там где возможно точки включения и выключения
             if BD_data.Uph_active:
                 ax_c1.plot(BD_data.dTph_On, BD_data.Uph_On, 'ob')
-                ax_c1.plot(BD_data.dTph_Off, BD_data.Uph_Off, 'ob')
+                ax_c1.plot(BD_data.dTph_Off+10, BD_data.Uph_Off, 'ob')
                 ax_c.plot(BD_data.dTph_On, BD_data.Uph_On, 'ob')
-                ax_c.plot(BD_data.dTph_Off, BD_data.Uph_Off, 'ob')
+                ax_c.plot(BD_data.dTph_Off+10, BD_data.Uph_Off, 'ob')
             print(BD_data.name)
             print(' -- ploted')
         else:
             print(BD_data.name)
             print(' -- NOT ploted')
         plt.show()
+        tlist2,tlist1,vlist1,vlist2=[],[],[],[]
 
 
 def plot_time_proc(DataClass=Data):

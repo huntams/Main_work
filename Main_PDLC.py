@@ -4,6 +4,7 @@
 
 import sys
 
+from PyQt5.QtChart import QScatterSeries, QLineSeries
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, qApp, QAction, QApplication, QDockWidget
 from PyQt5.QtGui import QIcon
@@ -13,7 +14,7 @@ import myinterface
 import widTableData
 import datetime
 import main_widget
-from db_worker import Data
+from db_worker import Data, DataGraph
 
 now = datetime.datetime.now()
 cur_date = now.strftime("%d-%m-%Y")
@@ -32,9 +33,11 @@ class Example(QMainWindow):
         self.status = self.statusBar()
         self.status.showMessage("Data loaded and plotted")
         # self.main_w.chart_view.choice_wid.qbtn.clicked.connect(self.test_test)
+        self.main_w.table_view.table.selectionModel().selectionChanged.connect(self.click_table)
         self.main_w.chart_view.plot_btn.clicked.connect(self.prosto_test)
         self.main_w.chart_view.plot_btn2.clicked.connect(self.prosto_test)
         self.main_w.chart_view.plot_btn3.clicked.connect(self.prosto_test)
+
         # fff = choice.Choicer()
         # fff.qbtn.clicked.connect(self.test_test)
         # Window dimensions
@@ -47,6 +50,27 @@ class Example(QMainWindow):
 
     def prosto_test(self):
         self.main_w.chart_view.choice_wid.qbtn.clicked.connect(self.test_test)
+
+    def click_table(self, selected, deselected):
+        for ix in selected.indexes():
+            if ix.column() == 1:
+                self.main_w.chart_view.name = self.main_w.table_view.table.item(ix.row(), ix.column()).text()
+                self.main_w.chart_view.name2 = self.main_w.table_view.table.item(ix.row(), 0).text()
+                self.main_w.chart_view.add_series_otrisovka_graf()
+            if ix.column()== 4:
+                self.main_w.chart_view.name = self.main_w.table_view.table.item(ix.row(), 1).text()
+                self.main_w.chart_view.name2 = self.main_w.table_view.table.item(ix.row(), 0).text()
+                self.main_w.chart_view.name_dot = self.main_w.table_view.table.item(ix.row(), ix.column()).text()
+                self.main_w.chart_view.add_series_transpare_proc()
+                print('its Ph.Umax:{}'.format(self.main_w.table_view.table.item(ix.row(),ix.column()).text()))
+            # print('Row: {0},column:{1}, text:{2}'.format(ix.row(),
+            #                                             ix.column(),
+            #                                             self.main_w.table_view.table.item(ix.row(),
+            #                                                                               ix.column()).text()))
+            break
+        print('helo warlde')
+
+    #
 
     def test_test(self):
         self.main_w.table_view.color_name = self.main_w.chart_view.color_name

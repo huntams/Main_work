@@ -13,6 +13,7 @@ class Plot(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         # Creating QChart
+        self.name, self.name2, self.name_dot = '', '', ''
         self.color_name = []
         self.chart = QChart()
         self.grid = QGridLayout()
@@ -67,10 +68,14 @@ class Plot(QWidget):
         self.choice_wid.qbtn.clicked.connect(self.add_series_otrisovka_graf)
 
     def add_series_transpare_proc(self):
+        #    #ошибка в цикле поменять name
         # Create QLineSeries
         try:
             self.color_name = []
             self.chart.removeAllSeries()
+            if self.name_dot != '':
+                series_dot2 = QScatterSeries(self.chart)
+                # series_dot2.pen().setColor(QtGui.QColor(255, 0, 0))
             for info, item in enumerate(self.choice_wid.choice_mas):
                 slovar, sorted_dict, sorted_values = {}, {}, {}
                 self.series = QLineSeries()
@@ -84,20 +89,38 @@ class Plot(QWidget):
                             # information = informations[0]
                             # information.setBackground(QtGui.QColor(self.color_name))
                 sorted_values = sorted(slovar.values())
+                print(sorted_values)
+                print(list(slovar.keys()))
                 for i in sorted_values:
                     for k in slovar.keys():
                         if slovar[k] == i:
                             sorted_dict[k] = slovar[k]
                             break
+                if self.name_dot != '':
+                    for BD_data in Data.select().where(self.name == Data.name):
+                        if BD_data.membrane.composition.name_composition == self.name2:
+                            print(self.name_dot, sorted_dict[self.name_dot])
+                            # series_dot2.append(self.name_dot, sorted_dict[self.name_dot])
+
                 for k in sorted_dict.keys():
+                    # if self.name_dot != '':
+                    #    #ошибка в цикле поменять name
+                    #    for BD_data in Data.select().where(self.name_dot == Data.Emax):
+                    #        print('testestests')
+                    #        if BD_data.membrane.composition.name_composition == self.name2 \
+                    #                and self.name == BD_data.name:
+                    #            print('yeyeyesw')
                     self.series.append(slovar[k], k)
                     series_dot.append(slovar[k], k)
                 self.chart.addSeries(self.series)
                 self.chart.addSeries(series_dot)
+                if self.name_dot != '':
+                    print('yes')
+                    self.chart.addSeries(series_dot2)
                 self.color_name.append("{}".format(self.series.pen().color().name()))
                 self.color_name.append(item)
                 # self.plot_btn.setStyleSheet('background:' + self.color_name[0])
-
+            self.name, self.name2, self.name_dot = '', '', ''
             self.axis_plot("Управляющее поле, В/мкм", "Прозрачность, В")
         except Exception as e:
             print(e)
@@ -153,31 +176,73 @@ class Plot(QWidget):
         massive1, massive2 = [], []
         try:
             self.chart.removeAllSeries()
-            for info, item in enumerate(self.choice_wid.choice_mas):
-                dot_series = QScatterSeries(self.chart)
+            if self.name != '':
+                self.dot_series = QScatterSeries(self.chart)
                 self.series = QLineSeries()
                 self.series2 = QLineSeries()
                 self.series.setName("t_on")
                 self.series2.setName("t_off")
-                for BD_data in Data.select():
-                    if BD_data.active:
-                        print("time1")
-                        if item == BD_data.membrane.composition.name_composition:
-                            for BD_item in DataGraph.select().where(DataGraph.index == BD_data.dirname):
-                                self.series.append(BD_item.Edata1, BD_item.Edata2)
-                                self.series2.append(BD_item.Udata1, BD_item.Udata2)
-                            print("time2")
-                            if BD_data.Uph_active:
-                                dot_series.append(BD_data.dTph_On, BD_data.Uph_On)
-                                dot_series.append(BD_data.dTph_Off, BD_data.Uph_Off)
-                            print(BD_data.name, end='')
-                            print(' -- ploted')
-                        else:
-                            print(BD_data.name, end='')
-                            print(' -- NOT ploted')
+                for BD_data in Data.select().where(self.name == Data.name):
+                    if BD_data.membrane.composition.name_composition == self.name2:
+                        self.series_otrisovka_append(BD_data)
                 self.chart.addSeries(self.series)
                 self.chart.addSeries(self.series2)
-                self.chart.addSeries(dot_series)
+                self.chart.addSeries(self.dot_series)
+                self.axis_x = QValueAxis()
+                self.axis_x.setTitleText("Время, мс")
+                self.chart.setAxisX(self.axis_x)
+                self.series2.attachAxis(self.axis_x)
+                self.dot_series.attachAxis(self.axis_x)
+                self.axis_y = QValueAxis()
+                self.axis_y.setTitleText("Управляющее поле, В/мкм")
+                self.chart.setAxisY(self.axis_y)
+                self.series2.attachAxis(self.axis_y)
+                self.dot_series.attachAxis(self.axis_y)
+            else:
+                #many plots
+                for info, item in enumerate(self.choice_wid.choice_mas):
+                    self.dot_series = QScatterSeries()
+                    self.series = QLineSeries()
+                    self.series2 = QLineSeries()
+                    self.series.setName("t_on")
+                    self.series2.setName("t_off")
+                    for BD_data in Data.select():
+                        if item == BD_data.membrane.composition.name_composition:
+                            self.series_otrisovka_append(BD_data)
+                    self.chart.addSeries(self.series)
+                    self.chart.addSeries(self.series2)
+                    self.chart.addSeries(self.dot_series)
+                    self.axis_x = QValueAxis()
+                    self.axis_x.setTitleText("Время, мс")
+                    self.chart.setAxisX(self.axis_x)
+                    self.series2.attachAxis(self.axis_x)
+                    self.dot_series.attachAxis(self.axis_x)
+                    self.axis_y = QValueAxis()
+                    self.axis_y.setTitleText("Управляющее поле, В/мкм")
+                    self.chart.setAxisY(self.axis_y)
+                    self.series2.attachAxis(self.axis_y)
+                    self.dot_series.attachAxis(self.axis_y)
+            self.name, self.name2 = '', ''
         except Exception as e:
             print(e)
-        self.axis_plot("Управляющее поле, В/мкм", "Время, мс")
+        #self.axis_plot("Время, мс", "Управляющее поле, В/мкм")
+
+
+
+    def series_otrisovka_append(self, BD_data):
+        if BD_data.active:
+            print("time1")
+            for BD_item in DataGraph.select().where(DataGraph.index == BD_data.dirname):
+                self.series.append(BD_item.Edata1, BD_item.Edata2)
+                self.series2.append(BD_item.Udata1, BD_item.Udata2)
+            print("time2")
+            if BD_data.Uph_active:
+                print(BD_data.dTph_On, BD_data.Uph_On)
+                print(BD_data.dTph_Off, BD_data.Uph_Off)
+                self.dot_series.append(BD_data.dTph_On, BD_data.Uph_On)
+                self.dot_series.append(BD_data.dTph_Off, BD_data.Uph_Off)
+            print(BD_data.name, end='')
+            print(' -- ploted')
+        else:
+            print(BD_data.name, end='')
+            print(' -- NOT ploted')
