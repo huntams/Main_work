@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import QMainWindow, QMessageBox, qApp, QAction, QApplicatio
 import main_widget
 import myinterface
 import widTableData
+from db_worker import Data
 
 now = datetime.datetime.now()
 cur_date = now.strftime("%d-%m-%Y")
@@ -31,7 +32,10 @@ class Example(QMainWindow):
         # self.main_w.chart_view.choice_wid.qbtn.clicked.connect(self.test_test)
         # Включение поиска на нажатие в таблице
         if os.path.exists('pdlc.db'):
-            self.first_load()
+            try:
+                self.first_load()
+            except Exception as e:
+                print(e)
         else:
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Question)
@@ -57,7 +61,6 @@ class Example(QMainWindow):
         # self.setWindowTitle("PDLC Reader")
         self.listwidget.qbtn.clicked.connect(self.first_load)
 
-
     def first_load(self):
         self.main_w.table_view.zapolnenietablici()
         self.main_w.chart_view.name = self.main_w.table_view.table.item(2, 1).text()
@@ -70,12 +73,18 @@ class Example(QMainWindow):
         msg.setWindowTitle("Успех")
         msg.exec_()
 
-
     def choice_click(self):
         """
         Передаёт функцию внутри виджета с полученными данными о цвете линии
         """
         self.main_w.chart_view.choice_wid.qbtn.clicked.connect(self.test_test)
+
+    def change_state(self):
+        Data.update({Data.active: True if self.cb.checkState() == 2 else False}).where(
+            Data.name == self.main_w.chart_view.name).execute()
+        print(float(self.main_w.chart_view.name2))
+        print(self.main_w.chart_view.name)
+        print(self.cb.checkState())
 
     def click_table(self, selected, deselected):
         """
@@ -83,6 +92,12 @@ class Example(QMainWindow):
         """
         # Получение всех нажатых ячеек
         for ix in selected.indexes():
+            if ix.column() == 0:
+                self.main_w.chart_view.name = self.main_w.table_view.table.item(ix.row(), 1).text()
+                self.main_w.chart_view.name2 = self.main_w.table_view.table.item(ix.row(), 2).text()
+                self.cb = self.main_w.table_view.table.cellWidget(ix.row(), ix.column())
+                self.cb.stateChanged.connect(self.change_state)
+                #print(self.main_w.table_view.table.cellWidget(ix.row(), ix.column()).checkState())
             if ix.column() == 1:
                 # Передача название строки и название плёнки
                 self.main_w.chart_view.name = self.main_w.table_view.table.item(ix.row(), ix.column()).text()
@@ -90,6 +105,7 @@ class Example(QMainWindow):
                 # Отрисовка ячейки
                 self.main_w.chart_view.add_series_otrisovka_graf()
                 self.test_test()
+                self.main_w.table_view.zapolnenietablici()
             elif ix.column() == 4:
                 # Передача название строки, название плёнки и содержание ячейки
                 self.main_w.chart_view.name = self.main_w.table_view.table.item(ix.row(), 1).text()
@@ -99,8 +115,9 @@ class Example(QMainWindow):
                 self.main_w.chart_view.add_series_transpare_proc()
                 self.test_test()
                 print('its Ph.Umax:{}'.format(self.main_w.table_view.table.item(ix.row(), ix.column()).text()))
+                self.main_w.table_view.zapolnenietablici()
             self.main_w.table_view.color_name = []
-            self.main_w.table_view.zapolnenietablici()
+
             # print('Row: {0},column:{1}, text:{2}'.format(ix.row(),
             #                                             ix.column(),
             #                                             self.main_w.table_view.table.item(ix.row(),
