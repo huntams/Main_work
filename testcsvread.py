@@ -3,6 +3,8 @@
 """
 from threading import Thread
 
+from PyQt5.QtWidgets import QMessageBox
+
 from db_worker import database, Composition, Membrane, Data, DataGraph
 import csv
 import matplotlib.pyplot as plt
@@ -30,6 +32,7 @@ class ThrThr(Thread):
             listslovarey(csvlist=mas[0])
         else:
             listslovarey(csvlist=mas[1])
+
 
 
 def treewalker(plenka_dir_name):
@@ -179,6 +182,7 @@ def listslovarey(csvlist=csvlist, thickness=1.0):
                     switch += 1
             DataGraph.insert_many(items_data).execute()
             alldata.append(namedata)
+
 
 
 def timpStartStop(dataDict):

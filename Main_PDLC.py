@@ -3,6 +3,7 @@
 """
 
 import datetime
+import os
 import sys
 
 from PyQt5.QtGui import QIcon
@@ -29,6 +30,14 @@ class Example(QMainWindow):
         self.status.showMessage("Data loaded and plotted")
         # self.main_w.chart_view.choice_wid.qbtn.clicked.connect(self.test_test)
         # Включение поиска на нажатие в таблице
+        if os.path.exists('pdlc.db'):
+            self.first_load()
+        else:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Question)
+            msg.setText("Ошибка загрузки базы данных, попробуйте загрузить информацию с компьютера")
+            msg.setWindowTitle("Информация")
+            msg.exec_()
         self.main_w.table_view.table.selectionModel().selectionChanged.connect(self.click_table)
         # Проверка на нажатия рисование какого-либо графика
         self.main_w.chart_view.plot_btn.clicked.connect(self.choice_click)
@@ -46,7 +55,21 @@ class Example(QMainWindow):
         self.listwidget = myinterface.Example()
         self.listwidget.setFixedSize(500, 160)
         # self.setWindowTitle("PDLC Reader")
-        self.listwidget.qbtn.clicked.connect(self.main_w.table_view.zapolnenietablici)
+        self.listwidget.qbtn.clicked.connect(self.first_load)
+
+
+    def first_load(self):
+        self.main_w.table_view.zapolnenietablici()
+        self.main_w.chart_view.name = self.main_w.table_view.table.item(2, 1).text()
+        self.main_w.chart_view.name2 = self.main_w.table_view.table.item(2, 0).text()
+        self.main_w.chart_view.add_series_otrisovka_graf()
+        self.test_test()
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Information)
+        msg.setText("База данных успешна загружена")
+        msg.setWindowTitle("Успех")
+        msg.exec_()
+
 
     def choice_click(self):
         """
