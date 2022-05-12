@@ -80,8 +80,8 @@ class Example(QMainWindow):
         self.main_w.chart_view.choice_wid.qbtn.clicked.connect(self.test_test)
 
     def change_state(self):
-        Data.update({Data.active: True if self.cb.checkState() == 2 else False}).where(
-            Data.name == self.main_w.chart_view.name).execute()
+        Data.update({Data.active: True if self.cb.checkState() == 2 else False}).where((
+            Data.name == self.main_w.chart_view.name) & (Data.Emax == self.main_w.chart_view.name2)).execute()
         print(float(self.main_w.chart_view.name2))
         print(self.main_w.chart_view.name)
         print(self.cb.checkState())
