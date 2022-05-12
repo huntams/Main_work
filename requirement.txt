@@ -1,0 +1,4 @@
+PyQt5==5.15.6
+peewee==3.14.8
+matplotlib==3.5.1
+openpyxl==3.0.9

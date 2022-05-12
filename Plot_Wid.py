@@ -1,23 +1,22 @@
-from PyQt5 import QtGui
-from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPainter
+from PyQt5.QtChart import QChart, QChartView, QLineSeries, QValueAxis, QScatterSeries
 from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import (QWidget,
-                             QSizePolicy, QPushButton, QGridLayout, QLabel, QComboBox)
-from PyQt5.QtChart import QChart, QChartView, QLineSeries, QValueAxis, QScatterSeries
-
-from db_worker import Data, DataGraph
+                             QSizePolicy, QPushButton, QGridLayout, QLabel)
 import choice
+from db_worker import Data, DataGraph
 
 
 class Plot(QWidget):
     def __init__(self):
         QWidget.__init__(self)
-        # Creating QChart
         self.name, self.name2, self.name_dot = '', '', ''
         self.color_name = []
+        # Создание QChart(График, в который отправляются все линии)
         self.chart = QChart()
         self.grid = QGridLayout()
         self.setLayout(self.grid)
+        # Загрузка анимаций при работе с графиком
         self.chart.setAnimationOptions(QChart.AllAnimations)
         size = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
 
@@ -29,7 +28,7 @@ class Plot(QWidget):
         self.grid.addWidget(self.chart_view, 1, 0, 2, 4)
 
         self.grid.addWidget(QLabel("Графики"), 0, 0, 1, 1)
-
+        # Проверка нажатие кнопок
         self.plot_btn = QPushButton('Отрисовать график времен срабатывания от поля', self)
         self.plot_btn.clicked.connect(self.test_func)
         self.grid.addWidget(self.plot_btn, 0, 1, 1, 1)
@@ -56,16 +55,55 @@ class Plot(QWidget):
         self.choice_wid.qbtn.clicked.connect(self.add_series_otrisovka_graf)
 
     def axis_plot(self, x_axis, y_axis):
-        #        # Setting X-axis
+        """
+        Настройка осей графика
+        """
+        # Setting X-axis
         self.axis_x = QValueAxis()
         self.axis_x.setTitleText(x_axis)
         self.chart.setAxisX(self.axis_x)
+        # подсоединение данных к оси x
         self.series.attachAxis(self.axis_x)
-        #        # Setting Y-axis
+        # Setting Y-axis
         self.axis_y = QValueAxis()
         self.axis_y.setTitleText(y_axis)
         self.chart.setAxisY(self.axis_y)
+        # подсоединение данных к оси Y
         self.series.attachAxis(self.axis_y)
+
+    def add_series_transpare_proc(self):
+        try:
+            slovar, sorted_dict, sorted_values = {}, {}, {}
+            self.color_name = []
+            self.chart.removeAllSeries()
+            # Create QLineSeries
+            series_dot2 = QScatterSeries(self.chart)
+            self.series = QLineSeries()
+            series_dot = QScatterSeries(self.chart)
+            if self.name_dot != '':
+                for BD_item in Data.select().where(self.name == Data.name):
+                    if BD_item.membrane.composition.name_composition == self.name2:
+                        self.series.setName("UphMAX" + ' ' + self.name2)
+                        print(self.name2)
+                        self.series_plot_transpare(self.name2, slovar, sorted_dict, series_dot)
+                        series_dot2.append(sorted_dict[float(self.name_dot)], float(self.name_dot))
+                self.chart.addSeries(series_dot2)
+                self.axis_plot("Управляющее поле, В/мкм", "Время, мс")
+                series_dot2.attachAxis(self.axis_x)
+                series_dot2.attachAxis(self.axis_y)
+                # series_dot2.pen().setColor(QtGui.QColor(255, 0, 0))
+            else:
+                for info, item in enumerate(self.choice_wid.choice_mas):
+                    self.series = QLineSeries()
+                    series_dot = QScatterSeries(self.chart)
+                    self.series.setName("UphMAX" + ' ' + str(item))
+                    slovar, sorted_dict, sorted_values = {}, {}, {}
+                    slovar, sorted_dict = self.series_plot_transpare(item, slovar, sorted_dict, series_dot)
+                    # self.plot_btn.setStyleSheet('background:' + self.color_name[0])
+                self.axis_plot("Управляющее поле, В/мкм", "Время, мс")
+            self.name, self.name2, self.name_dot = '', '', ''
+        except Exception as e:
+            print(e)
 
     def series_plot_transpare(self, item, slovar, sorted_dict, series_dot):
         for BD_data in Data.select():
@@ -81,7 +119,6 @@ class Plot(QWidget):
         for k in sorted_dict.keys():
             self.series.append(slovar[k], k)
             series_dot.append(slovar[k], k)
-            print(slovar[k], k)
         self.chart.addSeries(self.series)
         self.chart.addSeries(series_dot)
         # Getting the color from the QChart to use it on the QTableView
@@ -89,46 +126,6 @@ class Plot(QWidget):
         self.color_name.append(item)
         return slovar, sorted_dict
 
-    def add_series_transpare_proc(self):
-        try:
-            slovar, sorted_dict, sorted_values = {}, {}, {}
-            self.color_name = []
-            self.chart.removeAllSeries()
-            # Create QLineSeries
-            series_dot2 = QScatterSeries(self.chart)
-            self.series = QLineSeries()
-            series_dot = QScatterSeries(self.chart)
-            if self.name_dot != '':
-                for BD_item in Data.select().where(self.name == Data.name):
-                    if BD_item.membrane.composition.name_composition == self.name2:
-                        self.series.setName("UphMAX" + ' ' + self.name2)
-                        self.series_plot_transpare(self.name2, slovar, sorted_dict, series_dot)
-                        series_dot2.append(sorted_dict[float(self.name_dot)], float(self.name_dot))
-                self.chart.addSeries(series_dot2)
-                self.axis_plot("Управляющее поле, В/мкм", "Время, мс")
-                series_dot2.attachAxis(self.axis_x)
-                series_dot2.attachAxis(self.axis_y)
-                # series_dot2.pen().setColor(QtGui.QColor(255, 0, 0))
-            else:
-                for info, item in enumerate(self.choice_wid.choice_mas):
-                    self.series = QLineSeries()
-                    series_dot = QScatterSeries(self.chart)
-                    self.series.setName("UphMAX" + ' ' + str(item))
-                    slovar, sorted_dict, sorted_values = {}, {}, {}
-                    slovar, sorted_dict = self.series_plot_transpare(item, slovar, sorted_dict, series_dot)
-                    print(sorted_dict)
-                    # self.plot_btn.setStyleSheet('background:' + self.color_name[0])
-                self.axis_plot("Управляющее поле, В/мкм", "Время, мс")
-            self.name, self.name2, self.name_dot = '', '', ''
-        except Exception as e:
-            print(e)
-
-    #    def test_tTTTT(self):
-    #
-    #        test_test = widTableData.Tablica()
-    #        test_test.set_color(self.color_name)
-    #        test_test.color_name = self.color_name
-    #        print(test_test.color_name)
     def add_series_time_proc(self):
         try:
             # Create QLineSeries
@@ -185,7 +182,9 @@ class Plot(QWidget):
                 self.chart.addSeries(self.series)
                 self.chart.addSeries(self.series2)
                 self.chart.addSeries(self.dot_series)
-                self.axis_plot_graf()
+                self.axis_plot("Время, мс","Управляющее поле, В/мкм")
+                self.dot_series.attachAxis(self.axis_x)
+                self.dot_series.attachAxis(self.axis_y)
             else:
                 # many plots
                 for info, item in enumerate(self.choice_wid.choice_mas):
@@ -200,30 +199,21 @@ class Plot(QWidget):
                     self.chart.addSeries(self.series)
                     self.chart.addSeries(self.series2)
                     self.chart.addSeries(self.dot_series)
-                    self.axis_plot_graf()
+                    self.axis_plot("Время, мс", "Управляющее поле, В/мкм")
+                    self.dot_series.attachAxis(self.axis_x)
+                    self.dot_series.attachAxis(self.axis_y)
+                    #self.axis_plot_graf()
             self.name, self.name2 = '', ''
         except Exception as e:
             print(e)
         # self.axis_plot("Время, мс", "Управляющее поле, В/мкм")
 
-    def axis_plot_graf(self):
-        self.axis_x = QValueAxis()
-        self.axis_x.setTitleText("Время, мс")
-        self.chart.setAxisX(self.axis_x)
-        self.series2.attachAxis(self.axis_x)
-        self.dot_series.attachAxis(self.axis_x)
-        self.axis_y = QValueAxis()
-        self.axis_y.setTitleText("Управляющее поле, В/мкм")
-        self.chart.setAxisY(self.axis_y)
-        self.series2.attachAxis(self.axis_y)
-        self.dot_series.attachAxis(self.axis_y)
-
     def series_otrisovka_append(self, BD_data):
         if BD_data.active:
             print("time1")
             for BD_item in DataGraph.select().where(DataGraph.index == BD_data.dirname):
-                self.series.append(BD_item.Edata1, BD_item.Edata2)
-                self.series2.append(BD_item.Udata1, BD_item.Udata2)
+                self.series2.append(BD_item.Edata1, BD_item.Edata2)
+                self.series.append(BD_item.Udata1, BD_item.Udata2)
             print("time2")
             if BD_data.Uph_active:
                 print(BD_data.dTph_On, BD_data.Uph_On)
