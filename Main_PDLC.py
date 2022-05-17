@@ -6,7 +6,7 @@ import datetime
 import os
 import sys
 
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, qApp, QAction, QApplication
 
 import main_widget
@@ -67,6 +67,7 @@ class Example(QMainWindow):
         self.main_w.chart_view.name2 = self.main_w.table_view.table.item(2, 0).text()
         self.main_w.chart_view.add_series_otrisovka_graf()
         self.test_test()
+        self.main_w.chart_view.plot_btn4.clicked.connect(self.save_jpg)
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Information)
         msg.setText("База данных успешна загружена")
@@ -79,11 +80,16 @@ class Example(QMainWindow):
         """
         self.main_w.chart_view.choice_wid.qbtn.clicked.connect(self.test_test)
 
+    def save_jpg(self):
+        if not os.path.isdir("images"):
+            os.mkdir("images")
+        p = QPixmap(self.main_w.chart_view.grab())
+
+        p.save('images/'+self.main_w.chart_view.series.name() + '.png', "PNG")
+
     def change_state(self):
         Data.update({Data.active: True if self.cb.checkState() == 2 else False}).where((
             Data.name == self.main_w.chart_view.name) & (Data.Emax == self.main_w.chart_view.name2)).execute()
-        print(float(self.main_w.chart_view.name2))
-        print(self.main_w.chart_view.name)
         print(self.cb.checkState())
 
     def click_table(self, selected, deselected):
@@ -96,6 +102,7 @@ class Example(QMainWindow):
                 self.main_w.chart_view.name = self.main_w.table_view.table.item(ix.row(), 1).text()
                 self.main_w.chart_view.name2 = self.main_w.table_view.table.item(ix.row(), 2).text()
                 self.cb = self.main_w.table_view.table.cellWidget(ix.row(), ix.column())
+                self.filename = self.main_w.chart_view.name + self.main_w.chart_view.name2
                 self.cb.stateChanged.connect(self.change_state)
                 #print(self.main_w.table_view.table.cellWidget(ix.row(), ix.column()).checkState())
             if ix.column() == 1:
@@ -103,11 +110,14 @@ class Example(QMainWindow):
                 self.main_w.chart_view.name = self.main_w.table_view.table.item(ix.row(), ix.column()).text()
                 self.main_w.chart_view.name2 = self.main_w.table_view.table.item(ix.row(), 0).text()
                 # Отрисовка ячейки
+                self.filename = self.main_w.chart_view.name + self.main_w.chart_view.name2
                 self.main_w.chart_view.add_series_otrisovka_graf()
                 self.test_test()
                 self.main_w.table_view.zapolnenietablici()
+
             elif ix.column() == 4:
                 # Передача название строки, название плёнки и содержание ячейки
+                self.filename = self.main_w.chart_view.name + self.main_w.chart_view.name2
                 self.main_w.chart_view.name = self.main_w.table_view.table.item(ix.row(), 1).text()
                 self.main_w.chart_view.name2 = self.main_w.table_view.table.item(ix.row(), 0).text()
                 self.main_w.chart_view.name_dot = self.main_w.table_view.table.item(ix.row(), ix.column()).text()

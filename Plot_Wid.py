@@ -1,4 +1,6 @@
-from PyQt5.QtGui import QPainter
+import os
+
+from PyQt5.QtGui import QPainter, QPixmap
 from PyQt5.QtChart import QChart, QChartView, QLineSeries, QValueAxis, QScatterSeries
 from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import (QWidget,
@@ -12,6 +14,7 @@ class Plot(QWidget):
         QWidget.__init__(self)
         self.name, self.name2, self.name_dot = '', '', ''
         self.color_name = []
+        self.filename=''
         # Создание QChart(График, в который отправляются все линии)
         self.chart = QChart()
         self.grid = QGridLayout()
@@ -27,7 +30,8 @@ class Plot(QWidget):
         self.chart_view.setSizePolicy(size)
         self.grid.addWidget(self.chart_view, 1, 0, 2, 4)
 
-        self.grid.addWidget(QLabel("Графики"), 0, 0, 1, 1)
+        self.plot_btn4 = QPushButton('Save')
+        self.grid.addWidget(self.plot_btn4, 0, 0, 1, 1)
         # Проверка нажатие кнопок
         self.plot_btn = QPushButton('Отрисовать график времен срабатывания от поля', self)
         self.plot_btn.clicked.connect(self.test_func)
@@ -41,6 +45,11 @@ class Plot(QWidget):
         self.plot_btn3.clicked.connect(self.test_func3)
         self.grid.addWidget(self.plot_btn3, 0, 3, 1, 1)
 
+    def save_jpg(self, filename=''):
+        if not os.path.isdir("images"):
+            os.mkdir("images")
+        p = QPixmap(self.chart_view.grab())
+        p.save('images/'+filename + '.png', "PNG")
 
     def test_func(self):
         self.choice_wid = choice.Choicer()
@@ -91,6 +100,7 @@ class Plot(QWidget):
                 self.axis_plot("Управляющее поле, В/мкм", "Время, мс")
                 series_dot2.attachAxis(self.axis_x)
                 series_dot2.attachAxis(self.axis_y)
+                self.filename = self.name2+' '+self.name
                 # series_dot2.pen().setColor(QtGui.QColor(255, 0, 0))
             else:
                 for info, item in enumerate(self.choice_wid.choice_mas):
@@ -99,8 +109,11 @@ class Plot(QWidget):
                     self.series.setName("UphMAX" + ' ' + str(item))
                     slovar, sorted_dict, sorted_values = {}, {}, {}
                     slovar, sorted_dict = self.series_plot_transpare(item, slovar, sorted_dict, series_dot)
+
                     # self.plot_btn.setStyleSheet('background:' + self.color_name[0])
+                    self.filename += self.choice_wid.choice_mas[0]+' '
                 self.axis_plot("Управляющее поле, В/мкм", "Время, мс")
+            self.save_jpg(self.filename)
             self.name, self.name2, self.name_dot = '', '', ''
         except Exception as e:
             print(e)
@@ -191,7 +204,7 @@ class Plot(QWidget):
                     self.dot_series = QScatterSeries()
                     self.series = QLineSeries()
                     self.series2 = QLineSeries()
-                    self.series.setName("t_on")
+                    self.series.setName("t_on" + item)
                     self.series2.setName("t_off")
                     for BD_data in Data.select():
                         if item == BD_data.membrane.composition.name_composition:

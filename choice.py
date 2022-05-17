@@ -1,5 +1,5 @@
 """
-@authors: Maksim & Konstantin
+@authors: Maksim,Konstantin & Aleksej
 """
 
 import sys
@@ -26,7 +26,7 @@ class Choicer(QWidget):
         # table.setRowCount(1)        # и одну строку в таблице
         # Устанавливаем заголовки таблицы
         self.table.setHorizontalHeaderLabels(
-            ["Адрес", "Выбор"])
+            ["Плёнка", "Выбор"])
         # # Устанавливаем всплывающие подсказки на заголовки
         # self.table.horizontalHeaderItem(0).setToolTip("Column 1 ")
 
