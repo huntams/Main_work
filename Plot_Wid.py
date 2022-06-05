@@ -4,7 +4,7 @@ from PyQt5.QtGui import QPainter, QPixmap
 from PyQt5.QtChart import QChart, QChartView, QLineSeries, QValueAxis, QScatterSeries
 from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import (QWidget,
-                             QSizePolicy, QPushButton, QGridLayout, QLabel)
+                             QSizePolicy, QPushButton, QGridLayout, QLabel, QTabWidget)
 import choice
 from db_worker import Data, DataGraph
 

@@ -29,7 +29,8 @@ class Tablica(QWidget):
         # table.setRowCount(1)        # и одну строку в таблице
         # Устанавливаем заголовки таблицы
         self.table.setHorizontalHeaderLabels(
-            ["", "Адрес", "E(упр.)", "dt imp", "Ph. U(max)", "t on", "t off", "t max", "Аппроксимация", "Особенности"])
+            ["Выбрать всё", "Адрес", "E(упр.)", "dt imp", "Ph. U(max)", "t on", "t off", "t max", "Аппроксимация",
+             "Особенности"])
         # # Устанавливаем всплывающие подсказки на заголовки
         # self.table.horizontalHeaderItem(0).setToolTip("Column 1 ")
 
@@ -41,21 +42,24 @@ class Tablica(QWidget):
 
         # делаем ресайз колонок по содержимому
         self.table.resizeColumnsToContents()
+        # self.table.horizontalHeaderItem(column=0).
 
+        # self.table.horizontalHeader().sectionClicked.connect(self.test)
         grid.addWidget(QLabel("Данные"), 0, 0, 1, 1)
         grid.addWidget(self.table, 1, 0, 2, 4)  # Добавляем таблицу в сетку
 
         qbtn = QPushButton('Заполнить', self)
         qbtn.clicked.connect(self.zapolnenietablici)
-        grid.addWidget(qbtn, 0, 1, 1, 1)
+        grid.addWidget(qbtn, 0, 3, 1, 1)
 
-        plot_btn = QPushButton('Отрисовать сигналы', self)
-        plot_btn.clicked.connect(self.Plot_Data_Eimp_Uph)
-        grid.addWidget(plot_btn, 0, 2, 1, 1)
+#        plot_btn = QPushButton('Отрисовать сигналы', self)
+#        plot_btn.clicked.connect(self.Plot_Data_Eimp_Uph)
+#        grid.addWidget(plot_btn, 0, 2, 1, 1)
+#
+#        plot_btn2 = QPushButton('Отрисовать вычисленное', self)
+#        plot_btn2.clicked.connect(self.Plot_TimeAndPhoto)
+#        grid.addWidget(plot_btn2, 0, 3, 1, 1)
 
-        plot_btn2 = QPushButton('Отрисовать вычисленное', self)
-        plot_btn2.clicked.connect(self.Plot_TimeAndPhoto)
-        grid.addWidget(plot_btn2, 0, 3, 1, 1)
 
     def set_color(self, color_name):
         self.color_name = color_name
@@ -69,7 +73,7 @@ class Tablica(QWidget):
                 self.table.setItem(i, 0, QTableWidgetItem(izm.membrane.composition.name_composition))
                 self.table.setColumnWidth(0, 70)
                 self.table.setCellWidget(i, 0, QCheckBox())
-                self.table.cellWidget(i,0).toggle()
+                self.table.cellWidget(i, 0).toggle()
                 self.table.cellWidget(i, 0).setChecked(izm.active)
                 self.table.cellWidget(i, 0).setCheckable(True)
                 self.table.setColumnWidth(0, 180)

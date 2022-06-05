@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import QWidget, QDoubleSpinBox, QPushButton, QApplication, 
     QFileDialog, QMessageBox, QDesktopWidget
 
 dbdirname = ''
+import time
 
 
 class Example(QWidget):
@@ -39,7 +40,7 @@ class Example(QWidget):
         self.ImyaDirrectory = QLineEdit()
         self.ImyaDirrectory.setText('Выберите дирректорию (...)')
         grid.addWidget(self.ImyaDirrectory, 2, 2, 1, 2)
-        #self.setGeometry(300, 300, 600, 400)
+        # self.setGeometry(300, 300, 600, 400)
         self.setFixedSize(500, 160)
         win = self.frameGeometry()
         pos = QDesktopWidget().availableGeometry().center()
@@ -55,7 +56,11 @@ class Example(QWidget):
 
     def Load_Button(self):
         if self.dbdirname != '':
+
+            start_time = time.time()
+
             testcsvread.fulldirload(self.dbdirname, self.loadingTypeWid.currentIndex(), self.thicknessBox.value())
+            print("--- %s seconds ---" % (time.time() - start_time))
             self.close()
         else:
             QMessageBox.warning(self, 'Предупреждение', "Укажите путь к данными")

@@ -25,6 +25,7 @@ class Example(QMainWindow):
         self.main_w = main_widget.Widget()
         self.set_menu_tools_UI()
         self.central_wid_table()
+        self.clicked_header = True
         self.setWindowTitle("test plot")
         # Status Bar
         self.status = self.statusBar()
@@ -66,19 +67,31 @@ class Example(QMainWindow):
         self.main_w.chart_view.name = self.main_w.table_view.table.item(2, 1).text()
         self.main_w.chart_view.name2 = self.main_w.table_view.table.item(2, 0).text()
         self.main_w.chart_view.add_series_otrisovka_graf()
-        self.test_test()
+        self.color_update()
         self.main_w.chart_view.plot_btn4.clicked.connect(self.save_jpg)
+        self.main_w.table_view.table.horizontalHeader().sectionClicked.connect(self.update_choice)
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Information)
         msg.setText("База данных успешна загружена")
         msg.setWindowTitle("Успех")
         msg.exec_()
 
+    def update_choice(self):
+        if self.clicked_header:
+            self.main_w.table_view.table.horizontalHeaderItem(0).setText("Убрать всё")
+            Data.update({Data.active: self.clicked_header}).execute()
+            self.clicked_header = False
+        else:
+            self.main_w.table_view.table.horizontalHeaderItem(0).setText("Выбрать всё")
+            Data.update({Data.active: self.clicked_header}).execute()
+            self.clicked_header = True
+        self.main_w.table_view.zapolnenietablici()
+
     def choice_click(self):
         """
         Передаёт функцию внутри виджета с полученными данными о цвете линии
         """
-        self.main_w.chart_view.choice_wid.qbtn.clicked.connect(self.test_test)
+        self.main_w.chart_view.choice_wid.qbtn.clicked.connect(self.color_update)
 
     def save_jpg(self):
         if not os.path.isdir("images"):
@@ -97,7 +110,12 @@ class Example(QMainWindow):
         Функция поиска нажатых ячеек
         """
         # Получение всех нажатых ячеек
+
         for ix in selected.indexes():
+            print('Row: {0},column:{1}, text:{2}'.format(ix.row(),
+                                                         ix.column(),
+                                                         self.main_w.table_view.table.item(ix.row(),
+                                                                                           ix.column()).text()))
             if ix.column() == 0:
                 self.main_w.chart_view.name = self.main_w.table_view.table.item(ix.row(), 1).text()
                 self.main_w.chart_view.name2 = self.main_w.table_view.table.item(ix.row(), 2).text()
@@ -112,7 +130,7 @@ class Example(QMainWindow):
                 # Отрисовка ячейки
                 self.filename = self.main_w.chart_view.name + self.main_w.chart_view.name2
                 self.main_w.chart_view.add_series_otrisovka_graf()
-                self.test_test()
+                self.color_update()
                 self.main_w.table_view.zapolnenietablici()
 
             elif ix.column() == 4:
@@ -123,7 +141,7 @@ class Example(QMainWindow):
                 self.main_w.chart_view.name_dot = self.main_w.table_view.table.item(ix.row(), ix.column()).text()
                 # выделение на графике данные, нажатой ячейки
                 self.main_w.chart_view.add_series_transpare_proc()
-                self.test_test()
+                self.color_update()
                 print('its Ph.Umax:{}'.format(self.main_w.table_view.table.item(ix.row(), ix.column()).text()))
                 self.main_w.table_view.zapolnenietablici()
             self.main_w.table_view.color_name = []
@@ -136,7 +154,7 @@ class Example(QMainWindow):
 
     #
 
-    def test_test(self):
+    def color_update(self):
         """
         Передача данных в таблицу для добавления цветов в ячейках
         """
