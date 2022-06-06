@@ -4,52 +4,77 @@ from PyQt5.QtGui import QPainter, QPixmap
 from PyQt5.QtChart import QChart, QChartView, QLineSeries, QValueAxis, QScatterSeries
 from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import (QWidget,
-                             QSizePolicy, QPushButton, QGridLayout, QLabel, QTabWidget)
+                             QSizePolicy, QPushButton, QGridLayout, QLabel, QTabWidget, QVBoxLayout)
 import choice
 from db_worker import Data, DataGraph
+from numpy import array, exp
+from scipy.optimize import curve_fit
 
 
 class Plot(QWidget):
     def __init__(self):
         QWidget.__init__(self)
+        self.flag_approx = False
         self.name, self.name2, self.name_dot = '', '', ''
         self.color_name = []
-        self.filename=''
+        self.filename = ''
         # Создание QChart(График, в который отправляются все линии)
+        self.layout = QVBoxLayout(self)
         self.chart = QChart()
-        self.grid = QGridLayout()
-        self.setLayout(self.grid)
+        # self.grid = QGridLayout()
+        self.setLayout(self.layout)
         # Загрузка анимаций при работе с графиком
         self.chart.setAnimationOptions(QChart.AllAnimations)
         size = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+
+        self.tabs = QTabWidget()
+        self.tab1 = QWidget()
+        self.tab2 = QWidget()
+        self.tabs.resize(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        self.tabs.addTab(self.tab1, "Отрисовать графиков времен срабатывания от поля и прозрачности от поля")
+        self.tabs.addTab(self.tab2, "Отрисовка вычисленного")
 
         # Creating QChartView
         self.chart_view = QChartView(self.chart)
         self.chart_view.setRenderHint(QPainter.Antialiasing)
         # Right Layout
         self.chart_view.setSizePolicy(size)
-        self.grid.addWidget(self.chart_view, 1, 0, 2, 4)
+        # self.grid.addWidget(self.chart_view, 1, 0, 2, 4)
+
+        # self.plot_btn4 = QPushButton('Save')
+        # self.grid.addWidget(self.plot_btn4, 0, 0, 1, 1)
+        ## Проверка нажатие кнопок
+        # self.plot_btn = QPushButton('Отрисовать графиков времен срабатывания от поля и прозрачности от поля', self)
+        # self.plot_btn.clicked.connect(self.test_func)
+        # self.grid.addWidget(self.plot_btn, 0, 1, 1, 1)
+
+        ##self.plot_btn2 = QPushButton('Отрисовать график прозрачности от поля', self)
+        ##self.plot_btn2.clicked.connect(self.test_func2)
+        ##self.grid.addWidget(self.plot_btn2, 0, 2, 1, 1)
+
+        # self.plot_btn3 = QPushButton('Отрисовка вычисленного', self)
+        # self.plot_btn3.clicked.connect(self.test_func3)
+        # self.grid.addWidget(self.plot_btn3, 0, 3, 1, 1)
+
+        self.tab1.layout = QVBoxLayout(self)
+        self.tab2.layout = QVBoxLayout(self)
+
+        self.tab1.layout.addWidget(self.chart_view)
+        self.tab1.setLayout(self.tab1.layout)
+        self.tab2.layout.addWidget(self.chart_view)
+        self.tab2.setLayout(self.tab2.layout)
+        # Add tabs to widget
+        self.layout.addWidget(self.tabs)
 
         self.plot_btn4 = QPushButton('Save')
-        self.grid.addWidget(self.plot_btn4, 0, 0, 1, 1)
-        # Проверка нажатие кнопок
-        self.plot_btn = QPushButton('Отрисовать график времен срабатывания от поля', self)
-        self.plot_btn.clicked.connect(self.test_func)
-        self.grid.addWidget(self.plot_btn, 0, 1, 1, 1)
-
-        self.plot_btn2 = QPushButton('Отрисовать график прозрачности от поля', self)
-        self.plot_btn2.clicked.connect(self.test_func2)
-        self.grid.addWidget(self.plot_btn2, 0, 2, 1, 1)
-
-        self.plot_btn3 = QPushButton('Отрисовка вычисленного', self)
-        self.plot_btn3.clicked.connect(self.test_func3)
-        self.grid.addWidget(self.plot_btn3, 0, 3, 1, 1)
+        # self.grid.addWidget(self.plot_btn4, 0, 0, 1, 1)
+        self.layout.addWidget(self.plot_btn4)
 
     def save_jpg(self, filename=''):
         if not os.path.isdir("images"):
             os.mkdir("images")
         p = QPixmap(self.chart_view.grab())
-        p.save('images/'+filename + '.png', "PNG")
+        p.save('images/' + filename + '.png', "PNG")
 
     def test_func(self):
         self.choice_wid = choice.Choicer()
@@ -100,7 +125,7 @@ class Plot(QWidget):
                 self.axis_plot("Управляющее поле, В/мкм", "Время, мс")
                 series_dot2.attachAxis(self.axis_x)
                 series_dot2.attachAxis(self.axis_y)
-                self.filename = self.name2+' '+self.name
+                self.filename = self.name2 + ' ' + self.name
                 # series_dot2.pen().setColor(QtGui.QColor(255, 0, 0))
             else:
                 for info, item in enumerate(self.choice_wid.choice_mas):
@@ -111,7 +136,7 @@ class Plot(QWidget):
                     slovar, sorted_dict = self.series_plot_transpare(item, slovar, sorted_dict, series_dot)
 
                     # self.plot_btn.setStyleSheet('background:' + self.color_name[0])
-                    self.filename += self.choice_wid.choice_mas[0]+' '
+                    self.filename += self.choice_wid.choice_mas[0] + ' '
                 self.axis_plot("Управляющее поле, В/мкм", "Время, мс")
             self.save_jpg(self.filename)
             self.name, self.name2, self.name_dot = '', '', ''
@@ -195,7 +220,7 @@ class Plot(QWidget):
                 self.chart.addSeries(self.series)
                 self.chart.addSeries(self.series2)
                 self.chart.addSeries(self.dot_series)
-                self.axis_plot("Время, мс","Управляющее поле, В/мкм")
+                self.axis_plot("Время, мс", "Управляющее поле, В/мкм")
                 self.dot_series.attachAxis(self.axis_x)
                 self.dot_series.attachAxis(self.axis_y)
             else:
@@ -215,18 +240,42 @@ class Plot(QWidget):
                     self.axis_plot("Время, мс", "Управляющее поле, В/мкм")
                     self.dot_series.attachAxis(self.axis_x)
                     self.dot_series.attachAxis(self.axis_y)
-                    #self.axis_plot_graf()
+                    # self.axis_plot_graf()
             self.name, self.name2 = '', ''
         except Exception as e:
             print(e)
         # self.axis_plot("Время, мс", "Управляющее поле, В/мкм")
 
     def series_otrisovka_append(self, BD_data):
+        x, y = [], []
+        index = 0
         if BD_data.active:
             print("time1")
-            for BD_item in DataGraph.select().where(DataGraph.index == BD_data.dirname):
-                self.series2.append(BD_item.Edata1, BD_item.Edata2)
-                self.series.append(BD_item.Udata1, BD_item.Udata2)
+
+            if self.flag_approx:
+                print('fsafasf')
+                for BD_item in DataGraph.select().where(DataGraph.index == BD_data.dirname):
+                    x.append(BD_item.Udata1)
+                    y.append(BD_item.Udata2)
+                    self.series2.append(BD_item.Edata1, BD_item.Edata2)
+                xx = array(range(len(x)))
+                params, _ = curve_fit(self.approximation_exp, xx, y)
+                print(params)
+                a, b, c = params[0], params[1], params[2]
+                print(a)
+                print(xx)
+                test = xx * b
+                print(test)
+
+                yfit4 = a * exp(test) + c
+                print(yfit4)
+                for i in range(len(x)):
+                    self.series.append(x[i], yfit4[i])
+                self.flag_approx = False
+            else:
+                for BD_item in DataGraph.select().where(DataGraph.index == BD_data.dirname):
+                    self.series2.append(BD_item.Edata1, BD_item.Edata2)
+                    self.series.append(BD_item.Udata1, BD_item.Udata2)
             print("time2")
             if BD_data.Uph_active:
                 print(BD_data.dTph_On, BD_data.Uph_On)
@@ -238,3 +287,6 @@ class Plot(QWidget):
         else:
             print(BD_data.name, end='')
             print(' -- NOT ploted')
+
+    def approximation_exp(self, x, a, b, c):
+        return a * exp(b * x) + c
