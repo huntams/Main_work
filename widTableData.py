@@ -48,18 +48,23 @@ class Tablica(QWidget):
         grid.addWidget(QLabel("Данные"), 0, 0, 1, 1)
         grid.addWidget(self.table, 1, 0, 2, 4)  # Добавляем таблицу в сетку
 
-        qbtn = QPushButton('Заполнить', self)
-        qbtn.clicked.connect(self.zapolnenietablici)
-        grid.addWidget(qbtn, 0, 3, 1, 1)
+        self.qbtn = QPushButton('Заполнить', self)
+        self.qbtn.clicked.connect(self.update_actives)
+        grid.addWidget(self.qbtn, 0, 3, 1, 1)
 
-#        plot_btn = QPushButton('Отрисовать сигналы', self)
-#        plot_btn.clicked.connect(self.Plot_Data_Eimp_Uph)
-#        grid.addWidget(plot_btn, 0, 2, 1, 1)
-#
-#        plot_btn2 = QPushButton('Отрисовать вычисленное', self)
-#        plot_btn2.clicked.connect(self.Plot_TimeAndPhoto)
-#        grid.addWidget(plot_btn2, 0, 3, 1, 1)
+    #        plot_btn = QPushButton('Отрисовать сигналы', self)
+    #        plot_btn.clicked.connect(self.Plot_Data_Eimp_Uph)
+    #        grid.addWidget(plot_btn, 0, 2, 1, 1)
+    #
+    #        plot_btn2 = QPushButton('Отрисовать вычисленное', self)
+    #        plot_btn2.clicked.connect(self.Plot_TimeAndPhoto)
+    #        grid.addWidget(plot_btn2, 0, 3, 1, 1)
 
+    def update_actives(self):
+        Data.update({Data.active: True}).where(Data.dTph_max != 0).execute()
+        Data.update({Data.active: False}).where(Data.dTph_max == 0).execute()
+        print('yes')
+        self.zapolnenietablici()
 
     def set_color(self, color_name):
         self.color_name = color_name
