@@ -34,7 +34,6 @@ class ThrThr(Thread):
             listslovarey(csvlist=mas[1])
 
 
-
 def treewalker(plenka_dir_name):
     """
         Просматривает дирректории и ищет файлы данных
@@ -59,7 +58,7 @@ def treewalker(plenka_dir_name):
 
 def alone_mesure(plenka_dir_name):
     """
-    
+
     """
     tree = os.walk(plenka_dir_name)  # r'C:\Users\andri\Desktop\ДИПЛОМ\Test PDLC\1%Al2O3_281014 _3 d=35mn')
     kluch = True  # нужен для отсечения первого элемента кортежа
@@ -112,7 +111,7 @@ def listslovarey(csvlist=csvlist, thickness=1.0):
     """
     if Composition.select().where(Composition.name_composition == csvlist[0][0].split(os.path.sep)[-2]).count() == 0:
         # if Data.select().where(Data.name == csvlist[0][0].split(os.path.sep)[-2]).count() == 0:
-        #if csvlist[0]
+        # if csvlist[0]
         print(csvlist[0][0].split(os.path.sep)[-1])
         print(csvlist[0][0].split(os.path.sep)[-2])
         # Запись информации в таблицу состава
@@ -160,7 +159,7 @@ def listslovarey(csvlist=csvlist, thickness=1.0):
                                        Uph_desc_step=descritizationSTEP(namedata["Udata"][1]),
                                        dTph_On=namedata["Tph_On"] - namedata["Timp_start"],
                                        dTimp=namedata["dTimp"],
-                                       dTph_Off=namedata["Tph_Off"] - namedata["Timp_stop"]+10,
+                                       dTph_Off=namedata["Tph_Off"] - namedata["Timp_stop"] + 10,
                                        dTph_max=namedata["Timp_stop"] - namedata["Tph_On"],
                                        Uph_active=True,
                                        Uph_On=namedata["Uph_On"],
@@ -170,20 +169,15 @@ def listslovarey(csvlist=csvlist, thickness=1.0):
             items_data = []
             switch = 0
             for index in range(0, len(namedata["Edata"][0])):
-                if switch % 25 == 0:
-                    items_data.append({
-                        "index": all_data.dirname,
-                        "Edata1": namedata["Edata"][0][index],
-                        "Edata2": namedata["Edata"][1][index],
-                        "Udata1": namedata["Udata"][0][index],
-                        "Udata2": namedata["Udata"][1][index]
-                    })
-                    switch = 1
-                else:
-                    switch += 1
+                items_data.append({
+                    "index": all_data.dirname,
+                    "Edata1": namedata["Edata"][0][index],
+                    "Edata2": namedata["Edata"][1][index],
+                    "Udata1": namedata["Udata"][0][index],
+                    "Udata2": namedata["Udata"][1][index]
+                })
             DataGraph.insert_many(items_data).execute()
             alldata.append(namedata)
-
 
 
 def timpStartStop(dataDict):
@@ -295,16 +289,16 @@ def otrisovkagraf_mod():
             # Отрисовка там где возможно точки включения и выключения
             if BD_data.Uph_active:
                 ax_c1.plot(BD_data.dTph_On, BD_data.Uph_On, 'ob')
-                ax_c1.plot(BD_data.dTph_Off+10, BD_data.Uph_Off, 'ob')
+                ax_c1.plot(BD_data.dTph_Off , BD_data.Uph_Off, 'ob')
                 ax_c.plot(BD_data.dTph_On, BD_data.Uph_On, 'ob')
-                ax_c.plot(BD_data.dTph_Off+10, BD_data.Uph_Off, 'ob')
+                ax_c.plot(BD_data.dTph_Off + 10, BD_data.Uph_Off, 'ob')
             print(BD_data.name)
             print(' -- ploted')
         else:
             print(BD_data.name)
             print(' -- NOT ploted')
         plt.show()
-        tlist2,tlist1,vlist1,vlist2=[],[],[],[]
+        tlist2, tlist1, vlist1, vlist2 = [], [], [], []
 
 
 def plot_time_proc(DataClass=Data):
@@ -380,12 +374,11 @@ def fulldirload(aim_dir=default_test_dir, load_type=1, thickness=10.0):
 if __name__ == "__main__":
     treewalker(
         default_test_dir)  # просмотр указанной директории с заполнением списка файлив и директорий единичных измерений
-    threads = [ThrThr(name='first'), ThrThr(name='second')]
+    threads = [ThrThr(name='first', thickness=35), ThrThr(name='second', thickness=35)]
     for thread in threads:
         thread.start()
     for thread in threads:
         thread.join()
     # listslovarey()  # загрузка на основе списка единичных измерений в форме словарей включая определение времён
-    # otrisovkagraf_mod()  # отрисовка списка словарей единичных измерений
-    plot_time_proc()
-    plot_transpare_proc()
+    otrisovkagraf_mod()  # отрисовка списка словарей единичных измерений
+

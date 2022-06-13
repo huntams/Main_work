@@ -8,6 +8,7 @@ import sys
 
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, qApp, QAction, QApplication
+from numpy import exp
 
 import main_widget
 import myinterface
@@ -45,9 +46,10 @@ class Example(QMainWindow):
             msg.exec_()
         self.main_w.table_view.table.selectionModel().selectionChanged.connect(self.click_table)
         # Проверка на нажатия рисование какого-либо графика
-        self.main_w.chart_view.plot_btn.clicked.connect(self.choice_click)
-        self.main_w.chart_view.plot_btn2.clicked.connect(self.choice_click)
-        self.main_w.chart_view.plot_btn3.clicked.connect(self.choice_click)
+
+        # self.main_w.chart_view.plot_btn.clicked.connect(self.choice_click)
+        # self.main_w.chart_view.plot_btn2.clicked.connect(self.choice_click)
+        # self.main_w.chart_view.plot_btn3.clicked.connect(self.choice_click)
 
         # fff = choice.Choicer()
         # fff.qbtn.clicked.connect(self.test_test)
@@ -94,15 +96,21 @@ class Example(QMainWindow):
         self.main_w.chart_view.choice_wid.qbtn.clicked.connect(self.color_update)
 
     def save_jpg(self):
+        number = 1
         if not os.path.isdir("images"):
             os.mkdir("images")
         p = QPixmap(self.main_w.chart_view.grab())
-
-        p.save('images/'+self.main_w.chart_view.series.name() + '.png', "PNG")
+        if not os.path.exists('images/' + self.main_w.chart_view.series.name() + '.png'):
+            p.save('images/' + self.main_w.chart_view.series.name() + '.png', "PNG")
+        else:
+            while os.path.exists('images/' + self.main_w.chart_view.series.name() + str(number) + '.png'):
+                number += 1
+            p.save('images/' + self.main_w.chart_view.series.name() + str(number) + '.png')
 
     def change_state(self):
         Data.update({Data.active: True if self.cb.checkState() == 2 else False}).where((
-            Data.name == self.main_w.chart_view.name) & (Data.Emax == self.main_w.chart_view.name2)).execute()
+                                                                                               Data.name == self.main_w.chart_view.name) & (
+                                                                                               Data.Emax == self.main_w.chart_view.name2)).execute()
         print(self.cb.checkState())
 
     def click_table(self, selected, deselected):
@@ -112,17 +120,17 @@ class Example(QMainWindow):
         # Получение всех нажатых ячеек
 
         for ix in selected.indexes():
-            print('Row: {0},column:{1}, text:{2}'.format(ix.row(),
-                                                         ix.column(),
-                                                         self.main_w.table_view.table.item(ix.row(),
-                                                                                           ix.column()).text()))
+            # print('Row: {0},column:{1}, text:{2}'.format(ix.row(),
+            #                                             ix.column(),
+            #                                             self.main_w.table_view.table.item(ix.row(),
+            #                                                                               ix.column()).text()))
             if ix.column() == 0:
                 self.main_w.chart_view.name = self.main_w.table_view.table.item(ix.row(), 1).text()
                 self.main_w.chart_view.name2 = self.main_w.table_view.table.item(ix.row(), 2).text()
                 self.cb = self.main_w.table_view.table.cellWidget(ix.row(), ix.column())
                 self.filename = self.main_w.chart_view.name + self.main_w.chart_view.name2
                 self.cb.stateChanged.connect(self.change_state)
-                #print(self.main_w.table_view.table.cellWidget(ix.row(), ix.column()).checkState())
+                # print(self.main_w.table_view.table.cellWidget(ix.row(), ix.column()).checkState())
             if ix.column() == 1:
                 # Передача название строки и название плёнки
                 self.main_w.chart_view.name = self.main_w.table_view.table.item(ix.row(), ix.column()).text()
@@ -143,6 +151,15 @@ class Example(QMainWindow):
                 self.main_w.chart_view.add_series_transpare_proc()
                 self.color_update()
                 print('its Ph.Umax:{}'.format(self.main_w.table_view.table.item(ix.row(), ix.column()).text()))
+                self.main_w.table_view.zapolnenietablici()
+            elif ix.column() == 8:
+                self.main_w.chart_view.name = self.main_w.table_view.table.item(ix.row(), 1).text()
+                self.main_w.chart_view.name2 = self.main_w.table_view.table.item(ix.row(), 0).text()
+                self.main_w.chart_view.flag_approx = True
+                # Отрисовка ячейки
+                self.filename = self.main_w.chart_view.name + self.main_w.chart_view.name2
+                self.main_w.chart_view.add_series_otrisovka_graf()
+                self.color_update()
                 self.main_w.table_view.zapolnenietablici()
             self.main_w.table_view.color_name = []
 

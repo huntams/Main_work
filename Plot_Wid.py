@@ -1,10 +1,12 @@
 import os
-
 from PyQt5.QtGui import QPainter, QPixmap
 from PyQt5.QtChart import QChart, QChartView, QLineSeries, QValueAxis, QScatterSeries
 from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import (QWidget,
                              QSizePolicy, QPushButton, QGridLayout, QLabel, QTabWidget)
+from numpy import array, exp
+from scipy.optimize import curve_fit
+
 import choice
 from db_worker import Data, DataGraph
 
@@ -12,6 +14,7 @@ from db_worker import Data, DataGraph
 class Plot(QWidget):
     def __init__(self):
         QWidget.__init__(self)
+        self.flag_approx = False
         self.name, self.name2, self.name_dot = '', '', ''
         self.color_name = []
         self.filename=''
@@ -44,12 +47,6 @@ class Plot(QWidget):
         self.plot_btn3 = QPushButton('Отрисовка вычисленного', self)
         self.plot_btn3.clicked.connect(self.test_func3)
         self.grid.addWidget(self.plot_btn3, 0, 3, 1, 1)
-
-    def save_jpg(self, filename=''):
-        if not os.path.isdir("images"):
-            os.mkdir("images")
-        p = QPixmap(self.chart_view.grab())
-        p.save('images/'+filename + '.png', "PNG")
 
     def test_func(self):
         self.choice_wid = choice.Choicer()
@@ -90,7 +87,7 @@ class Plot(QWidget):
             self.series = QLineSeries()
             series_dot = QScatterSeries(self.chart)
             if self.name_dot != '':
-                for BD_item in Data.select().where(self.name == Data.name):
+                for BD_item in Data.select().where(self.name == Data.name ):
                     if BD_item.membrane.composition.name_composition == self.name2:
                         self.series.setName("UphMAX" + ' ' + self.name2)
                         print(self.name2)
@@ -113,7 +110,6 @@ class Plot(QWidget):
                     # self.plot_btn.setStyleSheet('background:' + self.color_name[0])
                     self.filename += self.choice_wid.choice_mas[0]+' '
                 self.axis_plot("Управляющее поле, В/мкм", "Время, мс")
-            self.save_jpg(self.filename)
             self.name, self.name2, self.name_dot = '', '', ''
         except Exception as e:
             print(e)
@@ -222,19 +218,36 @@ class Plot(QWidget):
         # self.axis_plot("Время, мс", "Управляющее поле, В/мкм")
 
     def series_otrisovka_append(self, BD_data):
+        x, y = [], []
+        index = 0
         if BD_data.active:
-            print("time1")
-            for BD_item in DataGraph.select().where(DataGraph.index == BD_data.dirname):
-                self.series2.append(BD_item.Edata1, BD_item.Edata2)
-                self.series.append(BD_item.Udata1, BD_item.Udata2)
-            print("time2")
+
+            if self.flag_approx:
+                for BD_item in DataGraph.select().where(DataGraph.index == BD_data.dirname):
+                    x.append(BD_item.Udata1)
+                    y.append(BD_item.Udata2)
+                    self.series2.append(BD_item.Edata1, BD_item.Edata2)
+                xx = array(range(len(x)))
+                params, _ = curve_fit(self.approximation_exp, xx, y)
+                a, b, c = params[0], params[1], params[2]
+                test = xx * b
+
+                yfit4 = a * exp(test) + c
+                for i in range(len(x)):
+                    self.series.append(x[i], yfit4[i])
+                self.flag_approx = False
+            else:
+                for BD_item in DataGraph.select().where(DataGraph.index == BD_data.dirname):
+                    if BD_item.id%25 ==0:
+                        self.series2.append(BD_item.Edata1, BD_item.Edata2)
+                        self.series.append(BD_item.Udata1, BD_item.Udata2)
             if BD_data.Uph_active:
-                print(BD_data.dTph_On, BD_data.Uph_On)
-                print(BD_data.dTph_Off, BD_data.Uph_Off)
                 self.dot_series.append(BD_data.dTph_On, BD_data.Uph_On)
                 self.dot_series.append(BD_data.dTph_Off, BD_data.Uph_Off)
-            print(BD_data.name, end='')
             print(' -- ploted')
         else:
             print(BD_data.name, end='')
             print(' -- NOT ploted')
+
+    def approximation_exp(self, x, a, b, c):
+        return a * exp(b * x) + c

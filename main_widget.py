@@ -34,7 +34,7 @@ class Widget(QWidget):
         self.main_layout.addWidget(self.table_view)
 
         # Right Layout
-        self.tab_widget = MyTabWidget(self)
+#        self.tab_widget = MyTabWidget(self)
         #self.main_layout.addWidget(self.tab_widget)
 
         self.main_layout.addWidget(self.chart_view)
